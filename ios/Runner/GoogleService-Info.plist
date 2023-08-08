@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>216493554082-o4ofn87qs7vl73mvr45go6nj55nuq192.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.216493554082-o4ofn87qs7vl73mvr45go6nj55nuq192</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>216493554082-mu34upsqjma2uhdpb95b8tqtr4uvb7nk.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCFvabkzwToJabeG3AwRHMcoBDMT_q9CQ8</string>
+	<key>GCM_SENDER_ID</key>
+	<string>216493554082</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.nuduwaFlutter</string>
+	<key>PROJECT_ID</key>
+	<string>nuduwawithflutter</string>
+	<key>STORAGE_BUCKET</key>
+	<string>nuduwawithflutter.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:216493554082:ios:3599964893735bc6c7dafb</string>
+</dict>
+</plist>
