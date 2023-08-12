@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nuduwa_flutter/components/nuduwa_colors.dart';
 
 class MainNavBar extends StatelessWidget {
   const MainNavBar({
@@ -19,28 +20,28 @@ class MainNavBar extends StatelessWidget {
           NavigationDestination(
             icon: Icon(Icons.map),
             label: '찾기',
-            selectedIcon: Icon(Icons.map, color: Colors.white),
+            selectedIcon: Icon(Icons.map, color: NuduwaColors.navSelect),
           ),
           NavigationDestination(
             icon: Icon(Icons.people),
             label: '모임',
-            selectedIcon: Icon(Icons.people, color: Colors.white),
+            selectedIcon: Icon(Icons.people, color: NuduwaColors.navSelect),
           ),
           NavigationDestination(
             icon: Icon(Icons.chat_bubble),
             label: '1:1 채팅',
-            selectedIcon: Icon(Icons.chat_bubble, color: Colors.white),
+            selectedIcon: Icon(Icons.chat_bubble, color: NuduwaColors.navSelect),
           ),
           NavigationDestination(
             icon: Icon(Icons.person),
             label: '내 정보',
-            selectedIcon: Icon(Icons.person, color: Colors.white),
+            selectedIcon: Icon(Icons.person, color: NuduwaColors.navSelect),
           ),
         ],
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (int index) => _onTap(context, index),
-        indicatorColor: Colors.blue,
-        surfaceTintColor: Colors.white,
+        indicatorColor: NuduwaColors.navIndicato,
+        surfaceTintColor: NuduwaColors.navBackground,
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
       ),
     );

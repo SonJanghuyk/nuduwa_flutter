@@ -1,15 +1,18 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nuduwa_flutter/screens/chat/chat_room_screen.dart';
-import 'package:nuduwa_flutter/screens/chat/chat_screen.dart';
-import 'package:nuduwa_flutter/screens/login/login_screen.dart';
-import 'package:nuduwa_flutter/screens/main_navbar.dart';
-import 'package:nuduwa_flutter/screens/map/map_screen.dart';
-import 'package:nuduwa_flutter/screens/meeting/meeting_chat_room_screen.dart';
-import 'package:nuduwa_flutter/screens/meeting/meeting_detail_screen.dart';
-import 'package:nuduwa_flutter/screens/meeting/meeting_screen.dart';
-import 'package:nuduwa_flutter/screens/profile/my_profile_screen.dart';
+import 'package:nuduwa_flutter/app/chat/chat_room_screen.dart';
+import 'package:nuduwa_flutter/app/chat/chat_screen.dart';
+import 'package:nuduwa_flutter/app/login/login_screen.dart';
+import 'package:nuduwa_flutter/app/nuduwa_app/bloc/authentication_bloc.dart';
+import 'package:nuduwa_flutter/app/nuduwa_app/view/main_navbar.dart';
+import 'package:nuduwa_flutter/app/map/map_screen.dart';
+import 'package:nuduwa_flutter/app/meeting/meeting_chat_room_screen.dart';
+import 'package:nuduwa_flutter/app/meeting/meeting_detail_screen.dart';
+import 'package:nuduwa_flutter/app/meeting/meeting_sreen.dart';
+import 'package:nuduwa_flutter/app/profile/my_profile_screen.dart';
 
+const isLogin = true;
 class AppRoute {
   static final GlobalKey<NavigatorState> _rootNavigatorKey =
       GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -20,11 +23,21 @@ class AppRoute {
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/map',
     debugLogDiagnostics: true,
+
+    errorBuilder: (context, state) => const Text('에러'),
+    redirect: (context, state) {
+      final authState = context.read<AuthenticationBloc>().state;
+      if (authState is AuthenticationFailure) {
+        return '/login';
+      }
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/login',
+        name: RouteNames.login,
         builder: (BuildContext context, GoRouterState state) {
-          return LoginScreen();
+          return const LoginScreen();
         },
       ),
 
@@ -43,8 +56,9 @@ class AppRoute {
             routes: <RouteBase>[
               GoRoute(
                 path: '/map',
+                name: RouteNames.map,
                 builder: (BuildContext context, GoRouterState state) {
-                  return MapScreen();
+                  return const MapScreen();
                 },
               ),
             ],
@@ -57,18 +71,20 @@ class AppRoute {
             routes: <RouteBase>[
               GoRoute(
                 path: '/meeting',
+                name: RouteNames.meeting,
                 builder: (BuildContext context, GoRouterState state) {
                   return const MeetingScreen();
                 },
                 routes: <RouteBase>[
                   GoRoute(
                     path: 'detail/:meetingId',
+                    name: RouteNames.meetingDetail,
                     pageBuilder: (BuildContext context, GoRouterState state) {
                       return CustomTransitionPage<void>(
                         key: state.pageKey,
                         child: MeetingDetailScreen(
                           meetingId:
-                              state.pathParameters['meetingId'] as String,
+                              state.pathParameters['meetingId']!,
                         ),
                         transitionDuration: const Duration(milliseconds: 150),
                         transitionsBuilder: (BuildContext context,
@@ -87,7 +103,8 @@ class AppRoute {
                     },
                   ),
                   GoRoute(
-                    path: 'chatroom',
+                    path: 'chatroom/:meetingId',
+                    name: RouteNames.meetingChatroom,
                     parentNavigatorKey: _rootNavigatorKey,
                     builder: (BuildContext context, GoRouterState state) {
                       return const MeetingChatRoomScreen();
@@ -105,12 +122,14 @@ class AppRoute {
             routes: <RouteBase>[
               GoRoute(
                 path: '/chat',
+                name: RouteNames.chat,
                 builder: (BuildContext context, GoRouterState state) {
-                  return ChatScreen();
+                  return const ChatScreen();
                 },
                 routes: <RouteBase>[
                   GoRoute(
-                    path: 'room',
+                    path: 'room/:otherUid',
+                    name: RouteNames.chatRoom,
                     parentNavigatorKey: _rootNavigatorKey,
                     builder: (BuildContext context, GoRouterState state) {
                       return const ChatRoomScreen();
@@ -128,8 +147,9 @@ class AppRoute {
             routes: <RouteBase>[
               GoRoute(
                 path: '/myprofile',
+                name: RouteNames.myprofile,
                 builder: (BuildContext context, GoRouterState state) {
-                  return MyProfileScreen();
+                  return const MyProfileScreen();
                 },
               ),
             ],
@@ -138,4 +158,19 @@ class AppRoute {
       ),
     ],
   );
+}
+
+class RouteNames {
+  static const login = 'login';
+  static const map = 'map';
+
+  static const meeting = 'meeting';
+  static const meetingDetail = 'meetingDetail';
+  static const meetingChatroom = 'meetingChatroom';
+
+  static const chat = 'chat';
+  static const chatRoom = 'chatRoom';
+
+  static const myprofile = 'myprofile';
+
 }
