@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:nuduwa_flutter/models/meeting.dart';
 
-class FirestoreManager {
+class FirebaseManager {
   static FirebaseFirestore get db => FirebaseFirestore.instance;
 
   // User Collection
@@ -9,7 +10,7 @@ class FirestoreManager {
   // static CollectionReference<UserChatting> userChattingList(String uid) => /* ... */
 
   // // Meeting Collection
-  // static CollectionReference<Meeting> get meetingList => /* ... */
+  static CollectionReference get meetingList => db.collection('Meeting');
   // static CollectionReference<Member> memberList(String meetingId) => /* ... */
   // static CollectionReference<Message> meetingMessageList(String meetingId) => /* ... */
 

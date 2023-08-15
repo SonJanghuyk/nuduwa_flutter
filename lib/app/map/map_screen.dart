@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:nuduwa_flutter/app/map/bloc/map_meeting_bloc.dart';
+import 'package:nuduwa_flutter/app/nuduwa_app/cubit/location_permission_cubit.dart';
 import 'package:nuduwa_flutter/components/nuduwa_colors.dart';
 
 class MapScreen extends StatefulWidget {
@@ -12,8 +15,6 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   late GoogleMapController mapController;
 
-  final LatLng _center = const LatLng(45.521563, -122.677433);
-
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
   }
@@ -25,14 +26,34 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          GoogleMap(
-            onMapCreated: _onMapCreated,
-            initialCameraPosition: CameraPosition(
-              // 초기 지도 위치
-              target: _center,
-              zoom: 15.0,
-            ),
-          ),
+          BlocBuilder<LocationPermissionCubit, LocationPermissionState>(
+              builder: (context, locationState) {
+                switch (locationState.status) {
+                  case LocationPermissionStatus.initial :
+                    return const Center(child: CircularProgressIndicator());
+
+                  case LocationPermissionStatus.enabled :
+                    return BlocBuilder<MapMeetingBloc, MapMeetingState>(
+                      builder: (context, state) => GoogleMap(
+                        onMapCreated: _onMapCreated,
+                        markers: state.meetingMarkers,
+                        initialCameraPosition: CameraPosition(
+                          // 초기 지도 위치
+                          target: locationState.currentLatLng!,
+                          zoom: 15.0,
+                        ),
+                      ),
+                    );
+
+                  case LocationPermissionStatus.denied 
+                  || LocationPermissionStatus.error :
+                    return Center(child: Text('오류 위치 정보를 불러올 수 없습니다. ${locationState.errorMessage}'),);
+                
+                }
+                }),
+
+
+            
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -93,7 +114,7 @@ class _MapScreenState extends State<MapScreen> {
       ),
     );
   }
-  
+
   Align createMeetingButton() {
     return Align(
       alignment: Alignment(Alignment.topRight.x, Alignment.topRight.y),

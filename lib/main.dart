@@ -28,7 +28,9 @@ void main() async {
   final authenticationRepository = AuthenticationRepository();
   await authenticationRepository.user.first;
 
-  runApp(NuduwaApp(
-    authenticationRepository: authenticationRepository,
-  ));
+  runApp(
+    NuduwaApp(
+      authenticationRepository: authenticationRepository,
+    ),
+  );
 }

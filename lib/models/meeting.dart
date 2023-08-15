@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:equatable/equatable.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-class Meeting {
+class Meeting extends Equatable{
   final String? id;
 
   final String title;
@@ -103,6 +104,9 @@ class Meeting {
       isEnd: meeting.isEnd,
     );
   }
+
+  @override
+  List<Object?> get props => [id, title, isEnd];
 }
 
 enum MeetingCategory {
