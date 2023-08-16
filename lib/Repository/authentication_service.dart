@@ -13,7 +13,7 @@ class AuthenticationService {
       if (user != null) {
         return User(id: user.uid, name: user.displayName, email: user.email);
       } else {
-        return  User(id: "uid", name: 'non');
+        return  const User(id: "uid", name: 'non');
       }
     });
   }

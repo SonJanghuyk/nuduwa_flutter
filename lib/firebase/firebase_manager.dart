@@ -1,16 +1,44 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nuduwa_flutter/models/meeting.dart';
+import 'package:nuduwa_flutter/models/user.dart';
+import 'package:nuduwa_flutter/models/user_chatting.dart';
+import 'package:nuduwa_flutter/models/user_meeting.dart';
 
 class FirebaseManager {
   static FirebaseFirestore get db => FirebaseFirestore.instance;
 
   // User Collection
-  // static CollectionReference<User> get userList => /* ... */
-  // static CollectionReference<UserMeeting> userMeetingList(String uid) => /* ... */
-  // static CollectionReference<UserChatting> userChattingList(String uid) => /* ... */
+  static CollectionReference<User> get userList =>
+      db.collection('User').withConverter<User>(
+            fromFirestore: User.fromFirestore,
+            toFirestore: (User user, options) => user.toFirestore(),
+          );
+  static CollectionReference<UserMeeting> userMeetingList(String uid) => db
+      .collection('User')
+      .doc(uid)
+      .collection('UserMeeting')
+      .withConverter<UserMeeting>(
+        fromFirestore: UserMeeting.fromFirestore,
+        toFirestore: (UserMeeting userMeeting, options) =>
+            userMeeting.toFirestore(),
+      );
+
+  static CollectionReference<UserChatting> userChattingList(String uid) => db
+      .collection('User')
+      .doc(uid)
+      .collection('UserChatting')
+      .withConverter<UserChatting>(
+        fromFirestore: UserChatting.fromFirestore,
+        toFirestore: (UserChatting userChatting, options) =>
+            userChatting.toFirestore(),
+      );
 
   // // Meeting Collection
-  static CollectionReference get meetingList => db.collection('Meeting');
+  static CollectionReference get meetingList =>
+      db.collection('Meeting').withConverter<Meeting>(
+            fromFirestore: Meeting.fromFirestore,
+            toFirestore: (Meeting meeting, options) => meeting.toFirestore(),
+          );
   // static CollectionReference<Member> memberList(String meetingId) => /* ... */
   // static CollectionReference<Message> meetingMessageList(String meetingId) => /* ... */
 
@@ -18,7 +46,6 @@ class FirebaseManager {
   // static CollectionReference<ChatRoom> get chattingList => /* ... */
   // static CollectionReference<Message> chattingMessageList(String chatttingId) => /* ... */
 }
-
 
 extension FirestoreQueryExtension on Query {
   /// Get All Items in Query
@@ -28,7 +55,7 @@ extension FirestoreQueryExtension on Query {
         .map((doc) => doc.data() as T)
         .where((data) => data != null)
         .toList();
-        
+
     return list;
   }
 
