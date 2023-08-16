@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
-import 'package:nuduwa_flutter/Repository/authentication_repository.dart';
-import 'package:nuduwa_flutter/app/nuduwa_app/bloc_observer.dart';
+import 'package:nuduwa_flutter/repository/authentication_repository.dart';
+import 'package:nuduwa_flutter/repository/user_meeting_repository.dart';
 import 'package:nuduwa_flutter/firebase/firebase_options.dart';
-import 'package:nuduwa_flutter/app/nuduwa_app/view/nuduwa_app.dart';
+import 'package:nuduwa_flutter/screens/nuduwa_app/bloc_observer.dart';
+import 'package:nuduwa_flutter/screens/nuduwa_app/view/nuduwa_app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,10 +28,12 @@ void main() async {
 
   final authenticationRepository = AuthenticationRepository();
   await authenticationRepository.user.first;
+  final userMeetingRepository = UserMeetingRepository();
 
   runApp(
     NuduwaApp(
       authenticationRepository: authenticationRepository,
+      userMeetingRepository: userMeetingRepository,
     ),
   );
 }

@@ -1,20 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nuduwa_flutter/Repository/map_meeting_repository.dart';
-import 'package:nuduwa_flutter/app/chat/chat_room_screen.dart';
-import 'package:nuduwa_flutter/app/chat/chat_screen.dart';
-import 'package:nuduwa_flutter/app/login/login_screen.dart';
-import 'package:nuduwa_flutter/app/map/bloc/map_meeting_bloc.dart';
-import 'package:nuduwa_flutter/app/nuduwa_app/bloc/authentication_bloc.dart';
-import 'package:nuduwa_flutter/app/nuduwa_app/view/main_navbar.dart';
-import 'package:nuduwa_flutter/app/map/map_screen.dart';
-import 'package:nuduwa_flutter/app/meeting/meeting_chat_room_screen.dart';
-import 'package:nuduwa_flutter/app/meeting/meeting_detail_screen.dart';
-import 'package:nuduwa_flutter/app/meeting/meeting_sreen.dart';
-import 'package:nuduwa_flutter/app/profile/my_profile_screen.dart';
+import 'package:nuduwa_flutter/screens/chat/chat_room_screen.dart';
+import 'package:nuduwa_flutter/screens/chat/chat_screen.dart';
+import 'package:nuduwa_flutter/screens/login/login_screen.dart';
+import 'package:nuduwa_flutter/screens/nuduwa_app/view/main_navbar.dart';
+import 'package:nuduwa_flutter/screens/map/map_screen.dart';
+import 'package:nuduwa_flutter/screens/meeting/meeting_chat_room_screen.dart';
+import 'package:nuduwa_flutter/screens/meeting/meeting_detail_screen.dart';
+import 'package:nuduwa_flutter/screens/meeting/meeting_sreen.dart';
+import 'package:nuduwa_flutter/screens/profile/my_profile_screen.dart';
 
 class AppRoute {
   static final GlobalKey<NavigatorState> _rootNavigatorKey =
@@ -28,15 +24,7 @@ class AppRoute {
     debugLogDiagnostics: true,
 
     errorBuilder: (context, state) => const Text('에러'),
-    redirect: (context, state) {
-      switch (context.read<AuthenticationBloc>().state.status) {
-        case AuthenticationStatus.authenticated:
-          return null;
-        case AuthenticationStatus.unauthenticated:
-          return '/login';
-      }
-    },
-    // refreshListenable: GoRouterRefreshStream(context.read<AuthenticationBloc>().stream),
+    
     routes: [
       GoRoute(
         path: '/login',
@@ -63,10 +51,7 @@ class AppRoute {
                 path: '/map',
                 name: RouteNames.map,
                 builder: (BuildContext context, GoRouterState state) {
-                  return BlocProvider(
-                      create: (BuildContext context) => MapMeetingBloc(
-                          mapMeetingRepository: MapMeetingRepository()),
-                      child: const MapScreen());
+                  return const MapScreen();
                 },
               ),
             ],
