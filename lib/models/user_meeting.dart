@@ -11,9 +11,9 @@ class UserMeeting {
     this.id,
     required this.meetingId,
     required this.hostUid,
-    required this.isEnd,
+    bool? isEnd,
     this.nonReviewMembers,
-  });
+  }): isEnd = isEnd ?? false;
 
   factory UserMeeting.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot, [

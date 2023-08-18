@@ -152,12 +152,10 @@ class AuthenticationRepository {
 
   AuthenticationRepository({
     firebase_auth.FirebaseAuth? firebaseAuth,
-    GoogleSignIn? googleSignIn,
-  })  : _firebaseAuth = firebaseAuth ?? firebase_auth.FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ?? GoogleSignIn.standard();
+  })  : _firebaseAuth = firebaseAuth ?? firebase_auth.FirebaseAuth.instance;
 
   final firebase_auth.FirebaseAuth _firebaseAuth;
-  final GoogleSignIn _googleSignIn;
+  late final GoogleSignIn _googleSignIn = GoogleSignIn.standard();
 
   bool isWeb = kIsWeb;
 

@@ -12,7 +12,7 @@ class Meeting extends Equatable{
   final String category;
 
   final LatLng location;
-  final String? goeHash;
+  final Map<String, dynamic>? position;
 
   final DateTime meetingTime;
   DateTime publishedTime;
@@ -31,7 +31,7 @@ class Meeting extends Equatable{
     required this.maxMembers,
     required this.category,
     required this.location,
-    this.goeHash,
+    this.position,
     required this.meetingTime,
     DateTime? publishedTime,
     required this.hostUid,
@@ -49,6 +49,7 @@ class Meeting extends Equatable{
     final data = snapshot.data();
     final latitude = data?['latitude'];
     final longitude = data?['longitude'];
+    final publishedTime = data?['publishedTime'] as Timestamp? ?? Timestamp.now();
     if (latitude == null) {
       return throw '에러! some meeting data is null';
     }
@@ -61,9 +62,9 @@ class Meeting extends Equatable{
       maxMembers: data?['maxMembers'],
       category: data?['category'],
       location: LatLng(latitude, longitude),
-      goeHash: data?['goeHash'],
+      position: data?['position'],
       meetingTime: data?['meetingTime'].toDate(),
-      publishedTime: data?['publishedTime'].toDate(),
+      publishedTime: publishedTime.toDate(),
       hostUid: data?['hostUID'],
       isEnd: data?['isEnd'],
     );
@@ -78,7 +79,7 @@ class Meeting extends Equatable{
       "category": category,
       "latitude": location.latitude,
       "longitude": location.longitude,
-      if (goeHash != null) "goeHash": goeHash,
+      if (position != null) "position": position,
       "meetingTime": meetingTime,
       "publishedTime": FieldValue.serverTimestamp(),
       "hostUID": hostUid,
@@ -95,7 +96,7 @@ class Meeting extends Equatable{
       maxMembers: meeting.maxMembers,
       category: meeting.category,
       location: meeting.location,
-      goeHash: meeting.goeHash,
+      position: meeting.position,
       meetingTime: meeting.meetingTime,
       publishedTime: meeting.publishedTime,
       hostUid: meeting.hostUid,

@@ -4,4 +4,7 @@ class Assets {
   static const String imageNuduwaLogo = 'assets/images/nuduwa_logo.png';
   static const String imageNoImage = 'assets/images/no_image.png';
   static const String imageLoading = 'assets/images/loading_image.png';
+
+  static const String txtGoogleMapStyle = 'assets/map_style.txt';
+
 }
