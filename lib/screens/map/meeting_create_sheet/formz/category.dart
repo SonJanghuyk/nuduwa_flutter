@@ -8,7 +8,7 @@ class CategoryInput extends FormzInput<String, String> {
   
   @override
   String? validator(String value) {
-    if (value.isEmpty) {
+    if (value == '') {
       return '입력해주세요';
     } else if (!MeetingCategory.values.map((e) => e.category).contains(value)) {
       return '오류';

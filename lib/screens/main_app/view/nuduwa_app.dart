@@ -1,33 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nuduwa_flutter/repository/authentication_repository.dart';
-import 'package:nuduwa_flutter/repository/user_meeting_repository.dart';
-import 'package:nuduwa_flutter/screens/nuduwa_app/bloc/authentication_bloc.dart';
-import 'package:nuduwa_flutter/screens/nuduwa_app/bloc/user_meeting_bloc.dart';
-import 'package:nuduwa_flutter/screens/nuduwa_app/cubit/location_permission_cubit.dart';
+import 'package:nuduwa_flutter/screens/main_app/bloc/authentication_bloc.dart';
+import 'package:nuduwa_flutter/screens/main_app/cubit/location_permission_cubit.dart';
 import 'package:nuduwa_flutter/components/nuduwa_themes.dart';
 import 'package:nuduwa_flutter/route/app_route.dart';
 
-class NuduwaApp extends StatelessWidget {
-  const NuduwaApp({
+class MainApp extends StatelessWidget {
+  const MainApp({
     required AuthenticationRepository authenticationRepository,
-    required UserMeetingRepository userMeetingRepository,
     super.key,
-  })  : _authenticationRepository = authenticationRepository,
-        _userMeetingRepository = userMeetingRepository;
+  })  : _authenticationRepository = authenticationRepository;
 
   final AuthenticationRepository _authenticationRepository;
-  final UserMeetingRepository _userMeetingRepository;
 
   @override
   Widget build(BuildContext context) {
-    return MultiRepositoryProvider(
-      providers: [
-        RepositoryProvider.value(
-          value: _authenticationRepository,
-        ),
-        RepositoryProvider.value(value: _userMeetingRepository),
-      ],
+    return RepositoryProvider.value(
+      value: _authenticationRepository,
       child: MultiBlocProvider(
         providers: [
           BlocProvider<AuthenticationBloc>(
@@ -39,11 +29,6 @@ class NuduwaApp extends StatelessWidget {
           BlocProvider<LocationPermissionCubit>(
             lazy: false,
             create: (_) => LocationPermissionCubit(),
-          ),
-          BlocProvider<UserMeetingBloc>(
-            create: (_) => UserMeetingBloc(
-              userMeetingRepository: _userMeetingRepository,
-            ),
           ),
         ],
         child: MaterialApp.router(

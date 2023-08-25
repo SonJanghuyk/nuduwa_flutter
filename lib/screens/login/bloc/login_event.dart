@@ -1,10 +1,10 @@
-// part of 'login_bloc.dart';
+part of 'login_bloc.dart';
 
-// sealed class LoginEvent extends Equatable {
-//   const LoginEvent();
+sealed class LoginEvent extends Equatable {
+  const LoginEvent();
 
-//   @override
-//   List<Object> get props => [];
-// }
+  @override
+  List<Object> get props => [];
+}
 
-// final class LoginWithGoogle extends LoginEvent {}
+final class LoginWithGoogle extends LoginEvent {}

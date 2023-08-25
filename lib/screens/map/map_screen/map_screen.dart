@@ -1,14 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:nuduwa_flutter/components/utils/map_helper.dart';
+import 'package:nuduwa_flutter/models/meeting.dart';
 import 'package:nuduwa_flutter/repository/meeting_repository.dart';
 import 'package:nuduwa_flutter/screens/map/map_screen/bloc/map_bloc.dart';
-import 'package:nuduwa_flutter/screens/map/map_screen/bloc/marker_bloc.dart';
+import 'package:nuduwa_flutter/screens/map/map_screen/bloc/meeting_of_map_bloc.dart';
 import 'package:nuduwa_flutter/screens/map/meeting_create_sheet/create_meeting_sheet.dart';
 import 'package:nuduwa_flutter/screens/map/meeting_create_sheet/cubit/create_meeting_cubit.dart';
-import 'package:nuduwa_flutter/screens/nuduwa_app/bloc/user_meeting_bloc.dart';
-import 'package:nuduwa_flutter/screens/nuduwa_app/cubit/location_permission_cubit.dart';
+import 'package:nuduwa_flutter/screens/main_app/bloc/user_meeting_bloc.dart';
+import 'package:nuduwa_flutter/screens/main_app/cubit/location_permission_cubit.dart';
 import 'package:nuduwa_flutter/components/nuduwa_colors.dart';
 
 class MapScreen extends StatelessWidget {
@@ -16,160 +18,156 @@ class MapScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider(
-      create: (_) => MeetingRepository(),
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider(
-            create: (context) => MarkerBloc(
-              meetingRepository: context.read<MeetingRepository>(),
-            ),
-          ),
-          BlocProvider(
-            create: (context) => MapBloc(),
-          ),
-        ],
-        child: Scaffold(
-          body: Stack(
-            children: [
-              // 위치 권한 블록
-              BlocBuilder<LocationPermissionCubit, LocationPermissionState>(
-                  builder: (context, locationState) {
-                switch (locationState.status) {
-                  case LocationPermissionStatus.initial:
-                    return const Center(child: CircularProgressIndicator());
-
-                  case LocationPermissionStatus.denied:
-                  case LocationPermissionStatus.error:
-                    return Center(
-                      child: Text(
-                          '오류 위치 정보를 불러올 수 없습니다. ${locationState.errorMessage}'),
-                    );
-
-                  case LocationPermissionStatus.enabled:
-                    context
-                        .read<MapBloc>()
-                        .add(MapInitiatedCenter(locationState.currentLatLng!));
-                    return BlocListener<UserMeetingBloc, UserMeetingState>(
-                      listener: (context, userMeetingState) {
-                        if (userMeetingState.status ==
-                            UserMeetingStatus.pause) {
-                          context
-                              .read<UserMeetingBloc>()
-                              .add(UserMeetingResumed());
-                        } else if (userMeetingState.status ==
-                            UserMeetingStatus.loaded) {
-                          context.read<MarkerBloc>().add(
-                              MarkerUpdated(userMeetingState.userMeetings));
-                        }
-                      },
-                      child: BlocConsumer<MapBloc, MapState>(
-                          /*
-                          모임 만들기 클릭했을때 MapState가 변경된다
-                          그러면 MarkerBloc에서 맵 중앙에 임시 마커 생성한다.
-                        */
-                          listenWhen: (previous, current) =>
-                              previous.status == MapStatus.selected ||
-                              current.status == MapStatus.selected,
-                          listener: (context, mapState) {
-                            if (mapState.status == MapStatus.selected) {
-                              context
-                                  .read<MarkerBloc>()
-                                  .add(MarkerAddedCenter(mapState.center!));
-                              return;
-                            }
-                            context
-                                .read<MarkerBloc>()
-                                .add(MarkerRemovedCenter());
-                          },
-                          buildWhen: (previous, current) =>
-                              previous.mapController != current.mapController,
-                          builder: (context, mapState) {
-                            if (mapState.status == MapStatus.loading) {
-                              return const Center(
-                                  child: CircularProgressIndicator());
-                            }
-                            return BlocBuilder<MarkerBloc, MarkerState>(
-                              builder: (context, markerState) => GoogleMap(
-                                onMapCreated: (controller) => context
-                                    .read<MapBloc>()
-                                    .add(MapCreated(controller)),
-                                initialCameraPosition: CameraPosition(
-                                  // 초기 지도 위치
-                                  target: locationState.currentLatLng!,
-                                  zoom: 15.0,
-                                ),
-                                compassEnabled: false, // 나침판표시 비활성화
-                                mapToolbarEnabled: false, // 클릭시 경로버튼 비활성화
-                                myLocationEnabled: true, // 내 위치 활성화
-                                myLocationButtonEnabled:
-                                    false, // 내 위치 버튼 비활성화(따로 구현함)
-                                zoomControlsEnabled: false, // 확대축소 버튼 비활성화
-                                markers: markerState.markers, // 지도 마커
-                                onCameraMove: (position) => context
-                                    .read<MapBloc>()
-                                    .add(MapMovedCenter(position)),
-                              ),
-                            );
-                          }),
-                    );
-                }
-              }),
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: BlocSelector<MapBloc, MapState,
-                          ({bool isSelect, LatLng? center})>(
-                      selector: (state) => (
-                            isSelect: state.status == MapStatus.selected,
-                            center: state.center,
-                          ),
-                      builder: (context, state) {
-                        final isSelect = state.isSelect;
-                        final center = state.center;
-                        return Stack(
-                          children: [
-                            // 필터 버튼
-                            filterButton(),
-
-                            // 모임만들기 버튼
-                            createMeetingButton(
-                                onPressed: () => !isSelect
-                                    ? context
-                                        .read<MapBloc>()
-                                        .add(MapSelectedNewMeetingLocation())
-                                    : context
-                                        .read<MapBloc>()
-                                        .add(MapCanceledNewMeetingLocation()),
-                                isSelect: isSelect),
-
-                            // 현재위치로 이동 버튼
-                            moveCurrentLocationButton(
-                                onPressed: () => context
-                                    .read<MapBloc>()
-                                    .add(MapMovedCurrentLatLng())),
-
-                            // 모임 생성 버튼
-                            if (isSelect)
-                              seletedLocationButton(onPressed: () {
-                                context
-                                    .read<MapBloc>()
-                                    .add(MapCreatedNewMeeting());
-                                createMeetingBottomSheet(context, center!);
-                              })
-                          ],
-                        );
-                      }),
-                ),
-              ),
-            ],
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => MeetingOfMapBloc(
+            meetingRepository: context.read<MeetingRepository>(),
           ),
         ),
+        BlocProvider(
+          create: (context) => MapBloc(
+            mapHelper: MapHelper(
+              drawIconOfMeeting: DrawIconOfMeeting(
+                imageSize: !kIsWeb ? 80.0 : 26.666,
+                borderWidth: !kIsWeb ? 10.0 : 3.333,
+                triangleSize: !kIsWeb ? 30.0 : 10.0,
+              ),
+            ),
+          ),
+        ),
+      ],
+      child: Stack(
+        children: [
+          // 위치 권한 체크
+          BlocBuilder<LocationPermissionCubit, LocationPermissionState>(
+            builder: (context, locationState) {
+              switch (locationState.status) {
+                case LocationPermissionStatus.initial:
+                  return const Center(child: CircularProgressIndicator());
+
+                case LocationPermissionStatus.denied:
+                case LocationPermissionStatus.error:
+                  return Center(
+                    child: Text(
+                        '오류 위치 정보를 불러올 수 없습니다. ${locationState.errorMessage}'),
+                  );
+
+                case LocationPermissionStatus.enabled:
+                  context.read<MapBloc>().add(MapInitiatedCenter(
+                      context, locationState.currentLatLng!));
+                  return BlocListener<UserMeetingBloc, UserMeetingState>(
+                    listener: (context, userMeetingState) {
+                      if (userMeetingState.status != UserMeetingStatus.stream) {
+                        context
+                            .read<UserMeetingBloc>()
+                            .add(UserMeetingResumed());
+                        context.read<MapBloc>().add(
+                            MapMarkerUpdated(userMeetingState.userMeetings));
+                      }
+                    },
+                    child: BlocListener<MeetingOfMapBloc, MeetingOfMapState>(
+                      listener: (context, state) {
+                        context
+                            .read<MapBloc>()
+                            .add(MapMarkerListened(state.meetings));
+                      },
+                      child: BlocBuilder<MapBloc, MapState>(
+                          builder: (context, mapState) {
+                        if (mapState.status == MapStatus.loading) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+
+                        return GoogleMap(
+                          onMapCreated: (controller) => context
+                              .read<MapBloc>()
+                              .add(MapCreated(controller)),
+                          initialCameraPosition: CameraPosition(
+                            // 초기 지도 위치
+                            target: locationState.currentLatLng!,
+                            zoom: 15.0,
+                          ),
+                          compassEnabled: false, // 나침판표시 비활성화
+                          mapToolbarEnabled: false, // 클릭시 경로버튼 비활성화
+                          myLocationEnabled: true, // 내 위치 활성화
+                          myLocationButtonEnabled:
+                              false, // 내 위치 버튼 비활성화(따로 구현함)
+                          zoomControlsEnabled: false, // 확대축소 버튼 비활성화
+                          markers: mapState.markers.values
+                              .map((e) => e.marker)
+                              .toSet(), // 지도 마커
+                          onCameraMove: (position) => context
+                              .read<MapBloc>()
+                              .add(MapMovedCenter(position)),
+                        );
+                      }),
+                    ),
+                  );
+              }
+            },
+          ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: BlocSelector<
+                      MapBloc,
+                      MapState,
+                      ({
+                        bool isSelect,
+                        LatLng? center,
+                        MeetingCategory category
+                      })>(
+                  selector: (state) => (
+                        isSelect: state.status == MapStatus.selected,
+                        center: state.center,
+                        category: state.category,
+                      ),
+                  builder: (context, state) {
+                    final isSelect = state.isSelect;
+                    final center = state.center;
+                    final category = state.category;
+                    return Stack(
+                      children: [
+                        // 필터 버튼
+                        filterButton(context, category),
+
+                        // 모임만들기 버튼
+                        createMeetingButton(
+                            onPressed: () => !isSelect
+                                ? context
+                                    .read<MapBloc>()
+                                    .add(MapMarkerAddedCenter())
+                                : context
+                                    .read<MapBloc>()
+                                    .add(MapMarkerRemovedCenter()),
+                            isSelect: isSelect),
+
+                        // 현재위치로 이동 버튼
+                        moveCurrentLocationButton(
+                            onPressed: () => context
+                                .read<MapBloc>()
+                                .add(MapMovedCurrentLatLng())),
+
+                        // 모임 생성 버튼
+                        if (isSelect)
+                          seletedLocationButton(onPressed: () {
+                            context
+                                .read<MapBloc>()
+                                .add(MapMarkerRemovedCenter());
+                            createMeetingBottomSheet(context, center!);
+                          })
+                      ],
+                    );
+                  }),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Align filterButton() {
+  Align filterButton(BuildContext context, MeetingCategory category) {
     return Align(
       alignment: Alignment(Alignment.topLeft.x, Alignment.topLeft.y),
       child: IntrinsicWidth(
@@ -187,14 +185,14 @@ class MapScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(30),
             ),
             itemBuilder: (BuildContext context) => [
-              filterMenuItem(context),
-              filterMenuItem(context),
+              for (final category in MeetingCategory.values)
+                filterMenuItem(context, category),
             ],
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
-                  '아무나',
+                  category.displayName == '전체' ? '필터' : category.displayName,
                   style: buttonTextStyle,
                 ),
               ),
@@ -284,12 +282,13 @@ class MapScreen extends StatelessWidget {
         ),
       );
 
-  PopupMenuItem<String> filterMenuItem(BuildContext context) {
+  PopupMenuItem<String> filterMenuItem(
+      BuildContext context, MeetingCategory category) {
     return PopupMenuItem<String>(
-      onTap: () {},
+      onTap: () => context.read<MapBloc>().add(MapFilteredMeeting(category)),
       child: Center(
         child: Text(
-          '전체',
+          category.displayName,
           style: buttonTextStyle,
         ),
       ),

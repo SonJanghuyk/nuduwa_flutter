@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -7,35 +8,91 @@ import 'package:http/http.dart' as http;
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:nuduwa_flutter/components/assets.dart';
+import 'package:nuduwa_flutter/models/meeting.dart';
+import 'package:nuduwa_flutter/screens/map/map_screen/bloc/map_bloc.dart';
 
 class MapHelper {
-  MapHelper({required this.drawIconOfMeeting});
+  MapHelper({required DrawIconOfMeeting drawIconOfMeeting}) : _drawIconOfMeeting = drawIconOfMeeting;
 
-  DrawIconOfMeeting drawIconOfMeeting;
-  late final Map<String, ui.Image> iconFrames;
-  late final Map<String, BitmapDescriptor> loadingIcons;
+  final DrawIconOfMeeting _drawIconOfMeeting;
+  late Map<IconColors, ui.Image> _iconFrames;
+  late Map<IconColors, BitmapDescriptor> _loadingIcons;
+  final Completer<Map<IconColors, BitmapDescriptor>> completer = Completer();
+  bool isInit = false;
 
   Future<void> initializeVariables() async {
+    if (isInit) return;
+    
     // 지도에서 쓸 아이콘 생성
-    final (iconFrames, loadingIcons) = await drawIconImages();
-    this.iconFrames = iconFrames;
-    this.loadingIcons = loadingIcons;
+    _iconFrames = await _drawIconFrames();
+    _loadingIcons = await _drawLoadingIcons(_iconFrames);
+    isInit = true;    
   }
 
   /// 지도에 보여줄 아이콘 이미지 미리 만들어놓기
-  Future<(Map<String, ui.Image>, Map<String, BitmapDescriptor>)>
-      drawIconImages() async {
+  Future<Map<IconColors, ui.Image>>
+      _drawIconFrames() async {
     final futureIconFrames = {
       for (final color in IconColors.values)
-        color.name: drawIconOfMeeting.drawIconFrame(color.color)
+        color : _drawIconOfMeeting.drawIconFrame(color.color)
     };
     final iconFrames = Map.fromIterables(
         futureIconFrames.keys, await Future.wait(futureIconFrames.values));
 
+    return iconFrames;
+  }
+  Future<Map<IconColors, BitmapDescriptor>>
+      _drawLoadingIcons(Map<IconColors, ui.Image> iconFrames) async {
     // 웹 이미지 가져오는동안 보여줄 아이콘
-    final loadingIcons = await drawIconOfMeeting.drawLoadingIcons(iconFrames);
+    final loadingIcons = await _drawIconOfMeeting.drawLoadingIcons(iconFrames);
 
-    return (iconFrames, loadingIcons);
+    return loadingIcons;
+  }
+
+  Marker creatLoadingMarker({
+    required Meeting meeting,
+    required IconColors iconColor,
+    required VoidCallback onTap,
+  }) {
+    final loadingIcon = _loadingIcons[iconColor]!;
+
+    // 우선 로딩아이콘으로 마커표시
+    final markerForLoading = Marker(
+      markerId: MarkerId(meeting.id!),
+      position: meeting.location,
+      icon: loadingIcon,
+      onTap: onTap,
+    );
+
+    return markerForLoading;
+  }
+
+  BitmapDescriptor loadingIcon(
+    IconColors iconColor,
+  ) {
+    final loadingIcon = _loadingIcons[iconColor]!;
+
+    return loadingIcon;
+  }
+
+  Future<Marker> fetchMeetingMarker({
+    required MarkerState markerState,
+  }) async {
+    try {
+      // Marker 이미지를 가져온 HostImage로 교체
+      final icon = await _drawIconOfMeeting.drawMeetingIcon(
+          markerState.hostImageUrl, _iconFrames[markerState.iconColor]!);
+
+      // Web이미지로 마커 새로 그리기
+      final newMarker = markerState.marker.copyWith(
+        iconParam: icon,
+      );
+
+      return newMarker;
+    } catch (e) {
+      debugPrint('에러!fetchHostData: ${e.toString()}');
+      rethrow;
+    }
   }
 }
 
@@ -60,8 +117,8 @@ class DrawIconOfMeeting {
   });
 
   /// 로딩중 지도에 표시할 아이콘 만들기
-  Future<Map<String, BitmapDescriptor>> drawLoadingIcons(
-      Map<String, ui.Image> iconImages) async {
+  Future<Map<IconColors, BitmapDescriptor>> drawLoadingIcons(
+      Map<IconColors, ui.Image> iconImages) async {
     // 웹 이미지 가져오는동안 보여줄 이미지
     final image = await _loadingImage();
 

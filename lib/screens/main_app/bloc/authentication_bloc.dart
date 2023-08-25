@@ -20,7 +20,6 @@ class AuthenticationBloc
         ) {
     on<_AuthenticationChanged>(_onUserChanged);
     on<AuthenticationSignedOut>(_onLogoutRequested);
-    on<AuthenticationSignedInWithGoogle>(_onGoogleSignIn);
 
     _userSubscription = _authenticationRepository.user.listen(
       (user) => add(_AuthenticationChanged(user)),
@@ -40,10 +39,6 @@ class AuthenticationBloc
 
   void _onLogoutRequested(AuthenticationSignedOut event, Emitter<AuthenticationState> emit) {
     unawaited(_authenticationRepository.signOut());
-  }
-
-  void _onGoogleSignIn(AuthenticationSignedInWithGoogle event,  Emitter<AuthenticationState> emit) async{
-    await _authenticationRepository.logInWithGoogle();
   }
 
 

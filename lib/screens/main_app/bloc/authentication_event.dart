@@ -19,8 +19,3 @@ final class AuthenticationSignedOut extends AuthenticationEvent {
   @override
   List<Object> get props => [];
 }
-
-final class AuthenticationSignedInWithGoogle extends AuthenticationEvent {
-  @override
-  List<Object> get props => [];
-}

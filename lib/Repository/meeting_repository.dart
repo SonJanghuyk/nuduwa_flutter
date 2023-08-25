@@ -1,11 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/widgets.dart';
 import 'package:geoflutterfire2/geoflutterfire2.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:nuduwa_flutter/firebase/firebase_manager.dart';
 import 'package:nuduwa_flutter/models/meeting.dart';
 import 'package:nuduwa_flutter/models/member.dart';
+import 'package:nuduwa_flutter/models/user.dart';
 import 'package:nuduwa_flutter/models/user_meeting.dart';
 
 class MeetingRepository {
@@ -18,6 +18,20 @@ class MeetingRepository {
     return stream;
   }
 
+  Stream<List<Member>> members(String meetingId) {
+    final ref = FirebaseManager.memberList(meetingId);
+    final stream = ref.streamAllDocuments<Member>();
+
+    return stream;
+  }
+
+  // Stream<int> membersCount(String meetingId) {
+  //   final ref = FirebaseManager.memberList(meetingId);
+  //   final stream = ref.snapshots()
+
+  //   return stream;
+  // }
+
   /// Create Meeting Data
   Future<void> create({
     required String title,
@@ -29,7 +43,7 @@ class MeetingRepository {
     required DateTime meetingTime,
   }) async {
     final meetingsRef = FirebaseManager.meetingList;    
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final uid = auth.FirebaseAuth.instance.currentUser?.uid;
     final geoPoint =
         geo.point(latitude: location.latitude, longitude: location.latitude);
         debugPrint('geo ${geoPoint.data}');
@@ -67,4 +81,23 @@ class MeetingRepository {
       rethrow;
     }
   }
+
+  Future<Meeting> fetchHostNameAndImage(Meeting meeting) async {
+    final user = await FirebaseManager.userList.doc(meeting.hostUid).getDocument<User?>();
+    if (user == null) return meeting; // 계정 삭제 등 데이터 없을때
+    final hostName = user.name;
+    final hostImage = user.imageUrl;
+    meeting.hostName = hostName;
+    meeting.hostImageUrl = hostImage;
+    return meeting;
+  }
+
+  Future<void> join(String meetingId) async {
+    final uid = auth.FirebaseAuth.instance.currentUser!.uid;
+    final member = Member(uid: uid);
+
+    final ref = FirebaseManager.memberList(meetingId);
+    await ref.add(member);
+  }
+
 }

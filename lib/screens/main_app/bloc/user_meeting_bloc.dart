@@ -13,7 +13,7 @@ part 'user_meeting_state.dart';
 class UserMeetingBloc extends Bloc<UserMeetingEvent, UserMeetingState> {
   UserMeetingBloc({required UserMeetingRepository userMeetingRepository})
       : _userMeetingRepository = userMeetingRepository,
-        super(const UserMeetingState.initial()) {
+        super(const UserMeetingState()) {
     on<UserMeetingResumed>(_onResumed);
     on<_UserMeetingFetched>(_onFetched);
     on<UserMeetingPaused>(_onPaused);
@@ -29,18 +29,23 @@ class UserMeetingBloc extends Bloc<UserMeetingEvent, UserMeetingState> {
   void _onFetched(_UserMeetingFetched event, Emitter<UserMeetingState> emit) {
     debugPrint('유저미팅: ${event.userMeetings.length}');
     emit(state.copyWith(
-      status: UserMeetingStatus.loaded,
+      status: UserMeetingStatus.stream,
       userMeetings: event.userMeetings,
     ));
   }
 
   void _onResumed(UserMeetingResumed event, Emitter<UserMeetingState> emit) {
-    emit(state.copyWith(status: UserMeetingStatus.loading));
     _userMeetingsSubscription.resume();
   }
 
   void _onPaused(UserMeetingPaused event, Emitter<UserMeetingState> emit) {
     _userMeetingsSubscription.pause();
     emit(state.copyWith(status: UserMeetingStatus.pause));
+  }
+
+  @override
+  Future<void> close() {
+    _userMeetingsSubscription.cancel();
+    return super.close();
   }
 }

@@ -4,7 +4,7 @@ class NuduwaThemes {
   static ThemeData get lightTheme => ThemeData(
         fontFamily: 'OmyuPretty',
         scaffoldBackgroundColor: Colors.white,
-        textTheme: _textTheme,
+        // textTheme: _textTheme,
         // appBarTheme: _appBarTheme,
         brightness: Brightness.light,
         useMaterial3: true,

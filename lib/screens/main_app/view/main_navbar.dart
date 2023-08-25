@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nuduwa_flutter/screens/nuduwa_app/bloc/authentication_bloc.dart';
+import 'package:nuduwa_flutter/repository/meeting_repository.dart';
+import 'package:nuduwa_flutter/repository/user_meeting_repository.dart';
+import 'package:nuduwa_flutter/screens/main_app/bloc/authentication_bloc.dart';
 import 'package:nuduwa_flutter/components/nuduwa_colors.dart';
 import 'package:nuduwa_flutter/route/app_route.dart';
+import 'package:nuduwa_flutter/screens/main_app/bloc/user_meeting_bloc.dart';
 
 class MainNavBar extends StatelessWidget {
   const MainNavBar({
@@ -22,7 +25,13 @@ class MainNavBar extends StatelessWidget {
         }
       },
       child: Scaffold(
-        body: navigationShell,
+        body: RepositoryProvider(
+          create: (_) => MeetingRepository(),
+          child: BlocProvider(
+            create: (context) => UserMeetingBloc(userMeetingRepository: UserMeetingRepository()),
+            child: navigationShell,
+          ),
+        ),
         bottomNavigationBar: NavigationBar(
           height: 60,
           destinations: const [

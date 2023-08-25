@@ -106,11 +106,31 @@ class Meeting extends Equatable{
     );
   }
 
+  factory Meeting.isEmpty({String? id}) {
+    return Meeting(
+      id: id ?? '',
+      title: '',
+      description: '',
+      place: '',
+      maxMembers: 0,
+      category: '',
+      location: const LatLng(0, 0),
+      position: null,
+      meetingTime: DateTime(0),
+      publishedTime: null,
+      hostUid: '',
+      hostName: '',
+      hostImageUrl: '',
+      isEnd: null,
+    );
+  }
+
   @override
-  List<Object?> get props => [id, title, isEnd];
+  List<Object?> get props => [id, title, description, place, maxMembers, category, location, position, meetingTime, publishedTime, hostUid, hostName, hostImageUrl, isEnd];
 }
 
 enum MeetingCategory {
+  all('all', '전체'),
   hobby('hobby', '취미활동'),
   meal('meal', '식사'),
   drink('drink', '술자리'),

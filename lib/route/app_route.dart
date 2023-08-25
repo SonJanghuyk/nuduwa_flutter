@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:nuduwa_flutter/screens/chat/chat_room_screen.dart';
 import 'package:nuduwa_flutter/screens/chat/chat_screen.dart';
 import 'package:nuduwa_flutter/screens/login/login_screen.dart';
-import 'package:nuduwa_flutter/screens/nuduwa_app/view/main_navbar.dart';
+import 'package:nuduwa_flutter/screens/main_app/view/main_navbar.dart';
 import 'package:nuduwa_flutter/screens/map/map_screen/map_screen.dart';
 import 'package:nuduwa_flutter/screens/meeting/meeting_chat_room_screen.dart';
 import 'package:nuduwa_flutter/screens/meeting/meeting_detail_screen.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nuduwa_flutter/screens/nuduwa_app/bloc/authentication_bloc.dart';
+import 'package:nuduwa_flutter/screens/main_app/bloc/authentication_bloc.dart';
 
 class MyProfileScreen extends StatelessWidget {
   const MyProfileScreen({super.key});
