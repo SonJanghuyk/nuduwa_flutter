@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:nuduwa_flutter/firebase/firebase_manager.dart';
+import 'package:nuduwa_flutter/models/user.dart';
 
 /// {@template sign_up_with_email_and_password_failure}
 /// Thrown during the sign up process if a failure occurs.
@@ -149,21 +150,22 @@ class LogOutFailure implements Exception {}
 /// Repository which manages user authentication.
 /// {@endtemplate}
 class AuthenticationRepository {
-
   AuthenticationRepository({
     firebase_auth.FirebaseAuth? firebaseAuth,
-  })  : _firebaseAuth = firebaseAuth ?? firebase_auth.FirebaseAuth.instance;
+  }) : _firebaseAuth = firebaseAuth ?? firebase_auth.FirebaseAuth.instance;
 
   final firebase_auth.FirebaseAuth _firebaseAuth;
   late final GoogleSignIn _googleSignIn = GoogleSignIn.standard();
 
+  final _userDataProvider = UserDataProvider();
+
   bool isWeb = kIsWeb;
 
-  Stream<User?> get user {
+  Stream<firebase_auth.User?> get user {
     return _firebaseAuth.authStateChanges();
   }
 
-  User? get currentUser {
+  firebase_auth.User? get currentUser {
     return _firebaseAuth.currentUser;
   }
 
@@ -182,23 +184,24 @@ class AuthenticationRepository {
 
   Future<void> logInWithGoogle() async {
     try {
-      late final firebase_auth.AuthCredential credential;
+      late final firebase_auth.UserCredential userCredential;
       if (isWeb) {
         final googleProvider = firebase_auth.GoogleAuthProvider();
-        final userCredential = await _firebaseAuth.signInWithPopup(
+        userCredential = await _firebaseAuth.signInWithPopup(
           googleProvider,
         );
-        credential = userCredential.credential!;
       } else {
         final googleUser = await _googleSignIn.signIn();
         final googleAuth = await googleUser!.authentication;
-        credential = firebase_auth.GoogleAuthProvider.credential(
+        final credential = firebase_auth.GoogleAuthProvider.credential(
           accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
         );
+        userCredential = await _firebaseAuth.signInWithCredential(credential);
       }
-
-      await _firebaseAuth.signInWithCredential(credential);
+      final user = userCredential.user;
+      if (user == null) return; // 오류처리해야함
+      await _registerUser(user);
     } on firebase_auth.FirebaseAuthException catch (e) {
       throw LogInWithGoogleFailure.fromCode(e.code);
     } catch (_) {
@@ -222,6 +225,27 @@ class AuthenticationRepository {
     }
   }
 
+  Future<void> _registerUser(firebase_auth.User authUser) async {
+    final currentUser = await _userDataProvider.readAll(authUser.uid);
+
+    final providerData = authUser.providerData
+        .map((e) => ProviderUserInfo.fromUserInfo(e))
+        .toList();
+
+    if (currentUser != null) {
+      // await FirebaseManager.userList.doc(authUser.uid).update(
+      //   {'providerData': providerData},
+      // );
+      return;
+    }
+    await _userDataProvider.create(
+      id: authUser.uid,
+      name: authUser.displayName,
+      email: authUser.email,
+      imageUrl: authUser.photoURL,
+      providerData: providerData,
+    );
+  }
 
   Future<void> signOut() async {
     try {

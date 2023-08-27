@@ -26,6 +26,8 @@ class MeetingOfMapBloc extends Bloc<MeetingOfMapEvent, MeetingOfMapState> {
       (meetings) => add(_MeetingOfMapListened(meetings)),
       onError: (handleError) => add(_MeetingOfMapErrored(handleError)),
     );
+
+    debugPrint('MeetingOfMapBloc시작');
   }
 
   final MeetingRepository _meetingRepository;
@@ -38,7 +40,7 @@ class MeetingOfMapBloc extends Bloc<MeetingOfMapEvent, MeetingOfMapState> {
 
     // 이전에 불러온 Meeting 데이터 있으면 그대로 쓰고 없으면 새로운 데이터 넣기
     final newMeetings = {
-      for (var meeting in event.meetings)
+      for (final meeting in event.meetings)
         meeting.id!: preMeetings[meeting.id!] ?? meeting
     };
 
@@ -49,8 +51,9 @@ class MeetingOfMapBloc extends Bloc<MeetingOfMapEvent, MeetingOfMapState> {
       if (newMeeting.hostName != null) continue;
       _meetingRepository.fetchHostNameAndImage(newMeeting)
       .then((meeting) {
-        newMeetings[meeting.id!] = meeting;
-        add(MeetingOfMapFetched(newMeetings));
+        final meetings = state.meetings;
+        meetings[meeting.id!] = meeting;
+        add(MeetingOfMapFetched(meetings));
       });
 
     }
@@ -104,6 +107,7 @@ class MeetingOfMapBloc extends Bloc<MeetingOfMapEvent, MeetingOfMapState> {
 
   @override
   Future<void> close() {
+    debugPrint('MeetingOfMapBloc끝');
     _meetingsSubscription.cancel();
     return super.close();
   }

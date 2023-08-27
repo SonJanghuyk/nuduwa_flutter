@@ -15,11 +15,12 @@ final class MapCreated extends MapEvent {
   List<Object> get props => [controller];
 }
 
-final class MapInitiatedCenter extends MapEvent {
-  const MapInitiatedCenter(this.context, this.center);
+final class MapInitiated extends MapEvent {
+  const MapInitiated(this.context, this.center);//, this.userMeetingIds);
 
   final BuildContext context;
   final LatLng center;
+  // final List<String> userMeetingIds;
 
   @override
   List<Object> get props => [context, center];

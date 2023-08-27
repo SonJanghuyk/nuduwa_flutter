@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nuduwa_flutter/screens/meeting/meeting_list.dart';
+import 'package:nuduwa_flutter/screens/meeting/meeting_list/meeting_list.dart';
 
 class MeetingScreen extends StatelessWidget {
   const MeetingScreen({super.key});

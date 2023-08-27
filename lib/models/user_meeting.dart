@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/widgets.dart';
+import 'package:nuduwa_flutter/firebase/firebase_manager.dart';
 
 class UserMeeting {
   final String? id;
@@ -44,16 +46,16 @@ class UserMeeting {
     };
   }
 }
-/*
-class UserMeetingRepository {
+
+class UserMeetingDataProvider {
 
   /// Create UserMeeting Data
-  static Future<DocumentReference<UserMeeting>?> create(
+  Future<DocumentReference<UserMeeting>?> create(
       {required String uid, required String meetingId, required String hostUid}) async {
 
     final userMeeting =
         UserMeeting(meetingId: meetingId, hostUid: hostUid, isEnd: false);
-    final ref = FirebaseReference.userMeetingList(uid).doc();
+    final ref = FirebaseManager.userMeetingList(uid).doc();
 
     try {
       await ref.set(userMeeting);
@@ -65,9 +67,9 @@ class UserMeetingRepository {
   }
 
   /// Read UserMeeting Data
-  static Future<UserMeeting?> read({required String uid, required String meetingId}) async {
+  Future<UserMeeting?> read({required String uid, required String meetingId}) async {
     final ref =
-        FirebaseReference.userMeetingList(uid).where('meetingId', isEqualTo: meetingId);
+        FirebaseManager.userMeetingList(uid).where('meetingId', isEqualTo: meetingId);
 
     try {
       final data = await ref.getDocument<UserMeeting?>();
@@ -79,10 +81,10 @@ class UserMeetingRepository {
   }
 
   /// Delete UserMeeting Data
-  static Future<void> delete(
+  Future<void> delete(
       { required String uid, required String meetingId}) async {
     final query =
-        FirebaseReference.userMeetingList(uid).where('meetingId', isEqualTo: meetingId);
+        FirebaseManager.userMeetingList(uid).where('meetingId', isEqualTo: meetingId);
 
     try {
       final snapshot = await query.get();
@@ -95,11 +97,10 @@ class UserMeetingRepository {
   }
 
   /// Listen UserMeetings Data
-  static Stream<List<UserMeeting>> listen(String uid) {
-    final ref = FirebaseReference.userMeetingList(uid);
+  Stream<List<UserMeeting>> stream(String uid) {
+    final ref = FirebaseManager.userMeetingList(uid);
     final stream = ref.streamAllDocuments<UserMeeting>();
 
     return stream;
   }
 }
-*/

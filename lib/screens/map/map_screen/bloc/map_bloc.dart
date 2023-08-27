@@ -18,7 +18,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   MapBloc({required MapHelper mapHelper})
       : _mapHelper = mapHelper,
         super(const MapState()) {
-    on<MapInitiatedCenter>(_onInitiatedCenter);
+    on<MapInitiated>(_onInitiatedCenter);
     on<MapCreated>(_onMapCreated);
     on<MapMarkerListened>(_onMarkerListened);
     on<_MapMarkerFetched>(_onMarkerFetched);
@@ -29,6 +29,8 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     on<MapMovedCenter>(_onMovedCenter);
     on<MapMovedCurrentLatLng>(_onMovedCurrentLatLng);
     on<MapFilteredMeeting>(_onFiltered);
+
+    debugPrint('MapBloc시작');
   }
 
   late BuildContext _context;
@@ -38,7 +40,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
 
   final newMarkerId = 'NewMarker';
 
-  void _onInitiatedCenter(MapInitiatedCenter event, Emitter<MapState> emit) {
+  void _onInitiatedCenter(MapInitiated event, Emitter<MapState> emit) {
     _context = event.context;
     _center = event.center;
   }
@@ -77,6 +79,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
           onTap: () => meetingInfoSheet(_context, meetingId));
       final newMarkerState = MarkerState(
         marker: newMarker,
+        hostUid: meeting.hostUid,
         hostImageUrl: meeting.hostImageUrl,
         iconColor: iconColor,
         isLoading: true,
@@ -125,16 +128,17 @@ class MapBloc extends Bloc<MapEvent, MapState> {
 
   void _onMarkerUpdated(MapMarkerUpdated event, Emitter<MapState> emit) {
     final userMeetings = event.userMeetings;
+    debugPrint('유저미팅수: ${userMeetings.length}');
     final markers = state.markers;
 
-    _userMeetingIds = userMeetings.map((e) => e.id!).toList();
+    _userMeetingIds = userMeetings.map((e) => e.meetingId).toList();
 
     markers.forEach((key, value) {
       final bool conditionA = _userMeetingIds.contains(key);
       final bool conditionB = value.iconColor == IconColors.defalt;
       if ((conditionA && conditionB) || (!conditionA && !conditionB)) {
         final iconColor = _iconColor(
-            key, userMeetings.firstWhere((e) => e.meetingId == key).hostUid);
+            key, value.hostUid);
 
         if (value.hostImageUrl == null) {
           final newMarker = value.marker.copyWith(
@@ -181,7 +185,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
         position: _center,
         zIndex: 1,
       );
-      markers[newMarkerId] = MarkerState(marker: newMarker, iconColor: null);
+      markers[newMarkerId] = MarkerState(marker: newMarker, hostUid: 'newMarker', iconColor: null);
     }
 
     emit(state.copyWith(
@@ -226,5 +230,11 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   void _onFiltered(MapFilteredMeeting event, Emitter<MapState> emit) {
     if (state.category == event.category) return;
     emit(state.copyWith(category: event.category));
+  }
+
+  @override
+  Future<void> close() {
+    debugPrint('MapBloc끝');
+    return super.close();
   }
 }

@@ -11,24 +11,28 @@ enum MapStatus {
 class MarkerState{ // extends Equatable {
   const MarkerState({
     required this.marker,
+    required this.hostUid,
     this.hostImageUrl,   
     this.iconColor,  
     this.isLoading = true,
   });
 
   final Marker marker;
+  final String hostUid;
   final String? hostImageUrl;
   final IconColors? iconColor;
   final bool isLoading;
 
   MarkerState copyWith({
     Marker? marker,
+    String? hostUid,
     String? hostImageUrl,
     IconColors? iconColor,
     bool? isLoading,
   }) {
     return MarkerState(
       marker: marker ?? this.marker,
+      hostUid: hostUid ?? this.hostUid,
       hostImageUrl: hostImageUrl ?? this.hostImageUrl,
       iconColor: iconColor ?? this.iconColor,
       isLoading: isLoading ?? this.isLoading,
@@ -58,7 +62,7 @@ final class MapState {
   final String? errorMessage;
 
   /*
-   속성에 null 값도 넣을 수 있게 Funtion()으로 만듬
+   속성에 null 값도 넣을 수 있게 ValueGetter으로 만듬
    ex) state.copyWith(errorMessage: null)이면 state에 있던 errorMessage 그대로 복사하고
        state.copyWith(errorMessage: () => null)이면 errorMessage = null이 됨
   */
@@ -68,7 +72,7 @@ final class MapState {
     LatLng? Function()? center,
     Map<String, MarkerState>? markers,
     MeetingCategory? category,
-    String? Function()? errorMessage,
+    ValueGetter<String>? errorMessage,
   }) {
     return MapState(
       status: status ?? this.status,

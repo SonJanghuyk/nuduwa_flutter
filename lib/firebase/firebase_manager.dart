@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nuduwa_flutter/models/meeting.dart';
 import 'package:nuduwa_flutter/models/member.dart';
+import 'package:nuduwa_flutter/models/message.dart';
 import 'package:nuduwa_flutter/models/user.dart';
 import 'package:nuduwa_flutter/models/user_chatting.dart';
 import 'package:nuduwa_flutter/models/user_meeting.dart';
@@ -48,7 +49,7 @@ class FirebaseManager {
           fromFirestore: Member.fromFirestore,
           toFirestore: (Member member, options) => member.toFirestore(),
         );
-  // static CollectionReference<Message> meetingMessageList(String meetingId) => /* ... */
+  // static CollectionReference<Message> meetingMessageList(String meetingId) => ();
 
   // // Chatting Collection
   // static CollectionReference<ChatRoom> get chattingList => /* ... */

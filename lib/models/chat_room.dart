@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/widgets.dart';
+import 'package:nuduwa_flutter/firebase/firebase_manager.dart';
 
 class ChatRoom {
   final String? id;
@@ -34,22 +36,20 @@ class ChatRoom {
     };
   }
 }
-/*
-class ChattingRepository {
+class ChattingDataProvider {
 
   /// Create Chatting Data
-  static Future<DocumentReference<ChatRoom>> create(
-      {required String uid, required String otherUid}) async {
-    final chatting = ChatRoom(people: [uid, otherUid]);
-    final ref = FirebaseReference.chattingList.doc();
+  // static Future<DocumentReference<ChatRoom>> create(
+  //     {required String uid, required String otherUid}) async {
+  //   final chatting = ChatRoom(people: [uid, otherUid]);
+  //   final ref = FirebaseManager.chattingList.doc();
 
-    try {
-      await ref.set(chatting);
-      return ref;
-    } catch (e) {
-      debugPrint('createChattingData에러: ${e.toString()}');
-      rethrow;
-    }
-  }
+  //   try {
+  //     await ref.set(chatting);
+  //     return ref;
+  //   } catch (e) {
+  //     debugPrint('createChattingData에러: ${e.toString()}');
+  //     rethrow;
+  //   }
+  // }
 }
-*/

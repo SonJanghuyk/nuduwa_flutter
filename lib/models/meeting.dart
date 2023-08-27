@@ -1,6 +1,10 @@
+import 'dart:ffi';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:nuduwa_flutter/firebase/firebase_manager.dart';
 
 class Meeting extends Equatable{
   final String? id;
@@ -9,7 +13,7 @@ class Meeting extends Equatable{
   final String description;
   final String place;
   final int maxMembers;
-  final String category;
+  final MeetingCategory category;
 
   final LatLng location;
   final Map<String, dynamic>? position;
@@ -47,8 +51,10 @@ class Meeting extends Equatable{
     SnapshotOptions? options,
   ) {
     final data = snapshot.data();
-    final latitude = data?['latitude'];
-    final longitude = data?['longitude'];
+    final categoryData = data?['category'] as String;
+    final category = MeetingCategory.fromCategory(categoryData);
+    final latitude = data?['latitude'] as double;
+    final longitude = data?['longitude'] as double;
     final publishedTime = data?['publishedTime'] as Timestamp? ?? Timestamp.now();
     if (latitude == null) {
       return throw '에러! some meeting data is null';
@@ -60,7 +66,7 @@ class Meeting extends Equatable{
       description: data?['description'],
       place: data?['place'],
       maxMembers: data?['maxMembers'],
-      category: data?['category'],
+      category: category,
       location: LatLng(latitude, longitude),
       position: data?['position'],
       meetingTime: data?['meetingTime'].toDate(),
@@ -76,7 +82,7 @@ class Meeting extends Equatable{
       "description": description,
       "place": place,
       "maxMembers": maxMembers,
-      "category": category,
+      "category": category.category,
       "latitude": location.latitude,
       "longitude": location.longitude,
       if (position != null) "position": position,
@@ -113,7 +119,7 @@ class Meeting extends Equatable{
       description: '',
       place: '',
       maxMembers: 0,
-      category: '',
+      category: MeetingCategory.all,
       location: const LatLng(0, 0),
       position: null,
       meetingTime: DateTime(0),
@@ -141,18 +147,50 @@ enum MeetingCategory {
   final String category;
   final String displayName;
   const MeetingCategory(this.category, this.displayName);
+
+  static MeetingCategory fromCategory(String categoryString) {
+    for (var category in values) {
+      if (category.category == categoryString) {
+        return category;
+      }
+    }
+    return MeetingCategory.all;
+  }
 }
-/*
-class MeetingRepository{
+
+class MeetingDataProvider{
 
   /// Create Meeting Data
-  static Future<DocumentReference<Meeting>?> create({required Meeting meeting, required String uid}) async {
+  Future<DocumentReference<Meeting>> create({
+    required String title,
+    required String description,
+    required String place,
+    required int maxMembers,
+    required MeetingCategory category,
+    required LatLng location,
+    required Map<String, dynamic> position,
+    required DateTime meetingTime,
+    required String hostUid,}) async {
 
-    final ref = FirebaseReference.meetingList;
+    
     try {
-      final newMeetingRef = await ref.add(meeting);
-      final meetingId = newMeetingRef.id;
-      await MemberRepository.create(memberUid: uid, meetingId: meetingId, hostUid: uid);
+      final ref = FirebaseManager.meetingList;
+
+      final newMeeting = Meeting(
+        title: title,
+        description: description,
+        place: place,
+        maxMembers: maxMembers,
+        category: category,
+        location: location,
+        position: position,
+        meetingTime: meetingTime,
+        hostUid: hostUid,
+      );
+
+      final newMeetingRef = await ref.add(newMeeting);
+      // final meetingId = newMeetingRef.id;
+      // await MemberRepository.create(memberUid: uid, meetingId: meetingId, hostUid: uid);
       return newMeetingRef;
 
     } catch (e) {
@@ -162,8 +200,8 @@ class MeetingRepository{
   }
 
   /// Read Meeting Data
-  static Future<Meeting?> read(String meetingId) async {
-    final ref = FirebaseReference.meetingList.doc(meetingId);
+  Future<Meeting?> read(String meetingId) async {
+    final ref = FirebaseManager.meetingList.doc(meetingId);
     try{
       final data = ref.getDocument<Meeting?>();
       return data;
@@ -175,12 +213,12 @@ class MeetingRepository{
   }  
 
   /// Update Meeting Data
-  static Future<void> update(
+  Future<void> update(
       {required String meetingId,
       String? title,
       String? description,
       String? place}) async {
-    final ref = FirebaseReference.meetingList.doc(meetingId);
+    final ref = FirebaseManager.meetingList.doc(meetingId);
     try {
       await ref.update({
         if (title != null) "title": title,
@@ -195,42 +233,41 @@ class MeetingRepository{
   }
 
   /// Listen Meetings Data
-  static Stream<Meeting?> stream({required String meetingId}) {
-    final ref = FirebaseReference.meetingList.doc(meetingId);
+  Stream<Meeting?> stream({required String meetingId}) {
+    final ref = FirebaseManager.meetingList.doc(meetingId);
     final stream = ref.streamDocument<Meeting>();
 
     return stream;
   }
 
   /// Listen Meetings Data
-  static Stream<List<Meeting>> streamAllDocuments() {
-    final ref = FirebaseReference.meetingList;
+  Stream<List<Meeting>> streamAllDocuments() {
+    final ref = FirebaseManager.meetingList;
     final stream = ref.streamAllDocuments<Meeting>();
 
     return stream;
   }
 
-  static Future<Meeting> fetchHostNameAndImage(Meeting meeting) async {
-    final (name, image) = await UserRepository.readOnlyNameAndImage(meeting.hostUid);
-    final fetchMeeting = meeting;
-    fetchMeeting.hostName = name;
-    fetchMeeting.hostImageUrl = image;
-    return fetchMeeting;
-  }
+  // Future<Meeting> fetchHostNameAndImage(Meeting meeting) async {
+  //   final (name, image) = await UserRepository.readOnlyNameAndImage(meeting.hostUid);
+  //   final fetchMeeting = meeting;
+  //   fetchMeeting.hostName = name;
+  //   fetchMeeting.hostImageUrl = image;
+  //   return fetchMeeting;
+  // }
 
   
 
-  static Meeting tempMeetingData() {
-    return Meeting(
-      title: '',
-      description: '',
-      place: '',
-      maxMembers: 0,
-      category: '',
-      location: const LatLng(0, 0),
-      meetingTime: DateTime(0),
-      hostUid: '',
-    );
-  }
+  // Meeting tempMeetingData() {
+  //   return Meeting(
+  //     title: '',
+  //     description: '',
+  //     place: '',
+  //     maxMembers: 0,
+  //     category: '',
+  //     location: const LatLng(0, 0),
+  //     meetingTime: DateTime(0),
+  //     hostUid: '',
+  //   );
+  // }
 }
-*/

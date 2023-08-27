@@ -1,14 +1,19 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nuduwa_flutter/models/meeting.dart';
+import 'package:nuduwa_flutter/repository/meeting_repository.dart';
 import 'package:nuduwa_flutter/screens/chat/chat_room_screen.dart';
 import 'package:nuduwa_flutter/screens/chat/chat_screen.dart';
 import 'package:nuduwa_flutter/screens/login/login_screen.dart';
 import 'package:nuduwa_flutter/screens/main_app/view/main_navbar.dart';
 import 'package:nuduwa_flutter/screens/map/map_screen/map_screen.dart';
 import 'package:nuduwa_flutter/screens/meeting/meeting_chat_room_screen.dart';
-import 'package:nuduwa_flutter/screens/meeting/meeting_detail_screen.dart';
+import 'package:nuduwa_flutter/screens/meeting/meeting_detail/bloc/meeting_detail_bloc.dart';
+import 'package:nuduwa_flutter/screens/meeting/meeting_detail/meeting_detail_screen.dart';
+import 'package:nuduwa_flutter/screens/meeting/meeting_list/bloc/meeting_bloc.dart';
 import 'package:nuduwa_flutter/screens/meeting/meeting_sreen.dart';
 import 'package:nuduwa_flutter/screens/profile/my_profile_screen.dart';
 
@@ -18,13 +23,13 @@ class AppRoute {
   static final GlobalKey<NavigatorState> _sectionNavigatorKey =
       GlobalKey<NavigatorState>(debugLabel: 'sectionNav');
 
+  static MeetingBloc? _meetingBloc;
+
   static final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/map',
     debugLogDiagnostics: true,
-
     errorBuilder: (context, state) => const Text('에러'),
-    
     routes: [
       GoRoute(
         path: '/login',
@@ -51,7 +56,7 @@ class AppRoute {
                 path: '/map',
                 name: RouteNames.map,
                 builder: (BuildContext context, GoRouterState state) {
-                  return MapScreen();
+                  return const MapScreen();
                 },
               ),
             ],
@@ -70,29 +75,31 @@ class AppRoute {
                 },
                 routes: <RouteBase>[
                   GoRoute(
-                    path: 'detail/:meetingId',
+                    path: 'detail',
                     name: RouteNames.meetingDetail,
-                    pageBuilder: (BuildContext context, GoRouterState state) {
-                      return CustomTransitionPage<void>(
-                        key: state.pageKey,
-                        child: MeetingDetailScreen(
-                          meetingId: state.pathParameters['meetingId']!,
-                        ),
-                        transitionDuration: const Duration(milliseconds: 150),
-                        transitionsBuilder: (BuildContext context,
-                            Animation<double> animation,
-                            Animation<double> secondaryAnimation,
-                            Widget child) {
-                          // Change the opacity of the screen using a Curve based on the the animation's
-                          // value
-                          return FadeTransition(
-                            opacity: CurveTween(curve: Curves.easeInOut)
-                                .animate(animation),
-                            child: child,
-                          );
-                        },
-                      );
-                    },
+                    builder: (context, state) {
+                      if(state.extra is MeetingBloc) _meetingBloc = state.extra as MeetingBloc;
+                      return MeetingDetailScreen(meetingBloc: _meetingBloc!);
+                    }
+                    // pageBuilder: (BuildContext context, GoRouterState state) {
+                    //   return CustomTransitionPage<void>(
+                    //     key: state.pageKey,
+                    //     child: MeetingDetailScreen(meetingBloc: state.extra as MeetingBloc),
+                    //     transitionDuration: const Duration(milliseconds: 150),
+                    //     transitionsBuilder: (BuildContext context,
+                    //         Animation<double> animation,
+                    //         Animation<double> secondaryAnimation,
+                    //         Widget child) {
+                    //       // Change the opacity of the screen using a Curve based on the the animation's
+                    //       // value
+                    //       return FadeTransition(
+                    //         opacity: CurveTween(curve: Curves.easeInOut)
+                    //             .animate(animation),
+                    //         child: child,
+                    //       );
+                    //     },
+                    //   );
+                    // },
                   ),
                   GoRoute(
                     path: 'chatroom/:meetingId',

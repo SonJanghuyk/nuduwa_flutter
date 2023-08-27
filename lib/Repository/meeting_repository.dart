@@ -9,11 +9,17 @@ import 'package:nuduwa_flutter/models/user.dart';
 import 'package:nuduwa_flutter/models/user_meeting.dart';
 
 class MeetingRepository {
+  final _meetingDataProvider = MeetingDataProvider();
+  final _userDataProvider = UserDataProvider();
+  final _memberDataProvider = MemberDataProvider();
+  final _userMeetingDataProvider = UserMeetingDataProvider();
+
   final geo = GeoFlutterFire();
 
+  String? get currentUid => auth.FirebaseAuth.instance.currentUser?.uid;
+
   Stream<List<Meeting>> get meetings {
-    final ref = FirebaseManager.meetingList;
-    final stream = ref.streamAllDocuments<Meeting>();
+    final stream = _meetingDataProvider.streamAllDocuments();
 
     return stream;
   }
@@ -21,6 +27,12 @@ class MeetingRepository {
   Stream<List<Member>> members(String meetingId) {
     final ref = FirebaseManager.memberList(meetingId);
     final stream = ref.streamAllDocuments<Member>();
+
+    return stream;
+  }
+
+  Stream<Meeting?> meeting(String meetingId) {
+    final stream = _meetingDataProvider.stream(meetingId: meetingId);
 
     return stream;
   }
@@ -38,19 +50,17 @@ class MeetingRepository {
     required String description,
     required String place,
     required int maxMembers,
-    required String category,
+    required MeetingCategory category,
     required LatLng location,
     required DateTime meetingTime,
   }) async {
-    final meetingsRef = FirebaseManager.meetingList;    
-    final uid = auth.FirebaseAuth.instance.currentUser?.uid;
-    final geoPoint =
-        geo.point(latitude: location.latitude, longitude: location.latitude);
-        debugPrint('geo ${geoPoint.data}');
-    final Map<String, dynamic> position = geoPoint.data;
-
     try {
-      final newMeeting = Meeting(
+      if (currentUid == null) return;
+      final geoPoint =
+          geo.point(latitude: location.latitude, longitude: location.latitude);
+      final Map<String, dynamic> position = geoPoint.data;
+
+      final ref = await _meetingDataProvider.create(
         title: title,
         description: description,
         place: place,
@@ -59,23 +69,16 @@ class MeetingRepository {
         location: location,
         position: position,
         meetingTime: meetingTime,
-        hostUid: uid!,
+        hostUid: currentUid!,
       );
-
-      final newMeetingRef = await meetingsRef.add(newMeeting);
-      final meetingId = newMeetingRef.id;
-      final membersRef = FirebaseManager.memberList(meetingId);
-      final userMeetingRef = FirebaseManager.userMeetingList(uid);
-
-      final newMember = Member(uid: uid);
-      final newUserMeeting = UserMeeting(meetingId: meetingId, hostUid: uid);
+      final meetingId = ref.id;
 
       await Future.wait([
-         membersRef.add(newMember),
-         userMeetingRef.add(newUserMeeting),
+        _memberDataProvider.create(
+            memberUid: currentUid!, meetingId: meetingId),
+        _userMeetingDataProvider.create(
+            uid: currentUid!, meetingId: meetingId, hostUid: currentUid!),
       ]);
-
-      
     } catch (e) {
       debugPrint('createMeetingData에러: ${e.toString()}');
       rethrow;
@@ -83,21 +86,23 @@ class MeetingRepository {
   }
 
   Future<Meeting> fetchHostNameAndImage(Meeting meeting) async {
-    final user = await FirebaseManager.userList.doc(meeting.hostUid).getDocument<User?>();
-    if (user == null) return meeting; // 계정 삭제 등 데이터 없을때
-    final hostName = user.name;
-    final hostImage = user.imageUrl;
-    meeting.hostName = hostName;
-    meeting.hostImageUrl = hostImage;
+    final data = await _userDataProvider.readOnlyNameAndImage(meeting.hostUid);
+    meeting.hostName = data.name;
+    meeting.hostImageUrl = data.image;
     return meeting;
   }
 
-  Future<void> join(String meetingId) async {
-    final uid = auth.FirebaseAuth.instance.currentUser!.uid;
-    final member = Member(uid: uid);
-
-    final ref = FirebaseManager.memberList(meetingId);
-    await ref.add(member);
+  Future<({String? name, String? image})> getUserNameAndImage(
+      String hostUid) async {
+    final data = await _userDataProvider.readOnlyNameAndImage(hostUid);
+    return data;
   }
 
+  Future<void> join(String meetingId, String hostUid) async {
+    if (currentUid == null) return;
+    await Future.wait([
+      _memberDataProvider.create(memberUid: currentUid!, meetingId: meetingId),
+      _userMeetingDataProvider.create(uid: currentUid!, meetingId: meetingId, hostUid: hostUid),
+    ]);
+  }
 }

@@ -5,12 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:nuduwa_flutter/models/meeting.dart';
 import 'package:nuduwa_flutter/screens/map/meeting_create_sheet/cubit/create_meeting_cubit.dart';
-import 'package:nuduwa_flutter/screens/map/meeting_create_sheet/formz/category.dart';
-import 'package:nuduwa_flutter/screens/map/meeting_create_sheet/formz/description.dart';
-import 'package:nuduwa_flutter/screens/map/meeting_create_sheet/formz/max_members.dart';
-import 'package:nuduwa_flutter/screens/map/meeting_create_sheet/formz/meeting_time.dart';
-import 'package:nuduwa_flutter/screens/map/meeting_create_sheet/formz/place.dart';
-import 'package:nuduwa_flutter/screens/map/meeting_create_sheet/formz/title.dart';
+import 'package:nuduwa_flutter/components/formz/category.dart';
+import 'package:nuduwa_flutter/components/formz/description.dart';
+import 'package:nuduwa_flutter/components/formz/max_members.dart';
+import 'package:nuduwa_flutter/components/formz/meeting_time.dart';
+import 'package:nuduwa_flutter/components/formz/place.dart';
+import 'package:nuduwa_flutter/components/formz/title.dart';
 import 'package:numberpicker/numberpicker.dart';
 
 class CreateMeetingSheet extends StatelessWidget {
@@ -168,12 +168,12 @@ class CreateMeetingSheet extends StatelessWidget {
       child: TextButton(
         onPressed: () => context
             .read<CreateMeetingCubit>()
-            .categoryChanged(category.category),
+            .categoryChanged(category),
         style: ButtonStyle(
           fixedSize: const MaterialStatePropertyAll<Size>(Size(80, 10)),
           foregroundColor: const MaterialStatePropertyAll<Color>(Colors.white),
           backgroundColor: MaterialStatePropertyAll<Color>(
-            categoryInput.value == category.category
+            categoryInput.value == category
                 ? Colors.blue
                 : Colors.grey,
           ),

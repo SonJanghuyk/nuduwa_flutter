@@ -4,7 +4,6 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:nuduwa_flutter/repository/user_meeting_repository.dart';
-import 'package:nuduwa_flutter/models/meeting.dart';
 import 'package:nuduwa_flutter/models/user_meeting.dart';
 
 part 'user_meeting_event.dart';
@@ -21,6 +20,8 @@ class UserMeetingBloc extends Bloc<UserMeetingEvent, UserMeetingState> {
     _userMeetingsSubscription = _userMeetingRepository.userMeetings.listen(
       (userMeetings) => add(_UserMeetingFetched(userMeetings)),
     );
+
+    debugPrint('UserMeetingBloc시작');
   }
 
   final UserMeetingRepository _userMeetingRepository;
@@ -45,6 +46,7 @@ class UserMeetingBloc extends Bloc<UserMeetingEvent, UserMeetingState> {
 
   @override
   Future<void> close() {
+    debugPrint('UserMeetingBloc끝');
     _userMeetingsSubscription.cancel();
     return super.close();
   }

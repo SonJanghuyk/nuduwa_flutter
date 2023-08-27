@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
 import 'package:nuduwa_flutter/repository/authentication_repository.dart';
 
 part 'login_event.dart';
@@ -10,6 +11,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       : _authenticationRepository = authenticationRepository,
         super(const LoginState.initial()) {
     on<LoginWithGoogle>(_googleLogin);
+    
+    debugPrint('LoginBloc시작');
   }
 
   final AuthenticationRepository _authenticationRepository;
@@ -22,5 +25,13 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     } catch (e) {
       emit(state.copyWith(status: LoginStatus.failure));
     }
+  }
+
+  
+
+  @override
+  Future<void> close() {
+    debugPrint('LoginBloc끝');
+    return super.close();
   }
 }

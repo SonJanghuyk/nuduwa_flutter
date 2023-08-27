@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -8,6 +9,7 @@ part 'location_permission_state.dart';
 class LocationPermissionCubit extends Cubit<LocationPermissionState> {
   LocationPermissionCubit() : super(const LocationPermissionState.initial()){
     _checkLocationPermission();
+    debugPrint('LocationPermissionCubit시작');
   }
 
   void _checkLocationPermission() async {
@@ -44,5 +46,11 @@ class LocationPermissionCubit extends Cubit<LocationPermissionState> {
     final currentLatLng =
         LatLng(currentPosition.latitude, currentPosition.longitude);
     emit(state.copyWith(status: LocationPermissionStatus.enabled, currentLatLng: currentLatLng));
+  }
+
+  @override
+  Future<void> close() {
+    debugPrint('LocationPermissionCubit끝');
+    return super.close();
   }
 }

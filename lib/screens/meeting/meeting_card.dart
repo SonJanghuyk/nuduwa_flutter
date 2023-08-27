@@ -1,50 +1,57 @@
 import 'dart:math' as math;
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:nuduwa_flutter/components/assets.dart';
 import 'package:nuduwa_flutter/models/meeting.dart';
+import 'package:nuduwa_flutter/screens/meeting/meeting_list/bloc/meeting_bloc.dart';
 
 class MeetingCard extends StatelessWidget {
-  MeetingCard({
+  const MeetingCard({
     super.key,
-    required this.meetingId,
     required this.onTap,
   });
 
-  final String meetingId;
   final void Function() onTap;
-
-  final meeting = Meeting(title: 'title', description: 'description', place: 'place', maxMembers: 5, category: 'category', location: const LatLng(0, 0), meetingTime: DateTime.now(), hostUid: 'hostUid',);
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 100,
-      height: 100,
-      child: Stack(
-        children: [
-          meetingListTile(meeting),
-          hostRibbon(),
-        ],
-      ),
+    return BlocBuilder<MeetingBloc, MeetingState>(
+      builder: (context, state) {
+        if (state.meeting == null) {
+          return const Center();
+        }
+        return SizedBox(
+          width: 100,
+          height: 100,
+          child: Stack(
+            children: [
+              meetingListTile(state.meeting),
+              if (FirebaseAuth.instance.currentUser?.uid == state.meeting?.hostUid)
+              hostRibbon(),
+            ],
+          ),
+        );
+      },
     );
   }
-  
+
   ListTile meetingListTile(Meeting? meeting) {
-    String? time = meeting==null ? null : DateFormat("y년 M월 d일 a hh:mm").format(meeting.meetingTime);
+    String? time = meeting == null
+        ? null
+        : DateFormat("y년 M월 d일 a hh:mm").format(meeting.meetingTime);
     return ListTile(
       contentPadding: const EdgeInsets.all(8.0),
       onTap: onTap,
       leading: SizedBox(
         width: 50,
         height: 50,
-        child: meeting == null
-            ? const Center(child: CircularProgressIndicator())
-            : CircleAvatar(
-                foregroundImage: meeting.hostImageUrl != null
-                    ? NetworkImage(meeting.hostImageUrl!) as ImageProvider
+        child: CircleAvatar(
+                foregroundImage: meeting?.hostImageUrl != null
+                    ? NetworkImage(meeting!.hostImageUrl!) as ImageProvider
                     : const AssetImage(Assets.imageNoImage),
                 backgroundImage:
                     const AssetImage(Assets.imageLoading), // 로딩 중일 때 보여줄 배경색
@@ -116,4 +123,3 @@ class TrapezoidClipper extends CustomClipper<Path> {
     return false;
   }
 }
-

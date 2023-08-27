@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/widgets.dart';
+import 'package:nuduwa_flutter/firebase/firebase_manager.dart';
 
 class Member {
   final String? id;
@@ -52,31 +54,28 @@ class Member {
     );
   }
 }
-/*
-class MemberRepository {
 
+class MemberDataProvider {
   /// Create Member Data
-  static Future<DocumentReference<Member>?> create(
-      {required String memberUid,
-      required String meetingId,
-      required String hostUid}) async {
-    final member = Member(uid: memberUid);
-    final ref = FirebaseReference.memberList(meetingId).doc();
+  Future<DocumentReference<Member>?> create({
+    required String memberUid,
+    required String meetingId,
+  }) async {
     try {
-      await Future.wait([
-        ref.set(member),
-        UserMeetingRepository.create(uid: memberUid, meetingId: meetingId, hostUid: hostUid),
-      ]);
+      final member = Member(uid: memberUid);
+      final ref = FirebaseManager.memberList(meetingId).doc();
+      await ref.set(member);
       return ref;
     } catch (e) {
       debugPrint('createMemberData에러: ${e.toString()}');
       rethrow;
     }
   }
-  
+
   /// Read Member Data
-  static Future<Member?> read(String meetingId, String uid) async {
-    final query = FirebaseReference.memberList(meetingId).where('uid', isEqualTo: uid);
+  static Future<Member?> read(String meetingId, String memberUid) async {
+    final query = FirebaseManager.memberList(meetingId)
+        .where('uid', isEqualTo: memberUid);
 
     try {
       final data = query.getDocument<Member?>();
@@ -89,16 +88,13 @@ class MemberRepository {
 
   /// Delete Member Data
   static Future<void> delete(
-      {required String meetingId, required String uid}) async {
-    final query = FirebaseReference.memberList(meetingId).where('uid', isEqualTo: uid);
-
+      {required String meetingId, required String memberUid}) async {
     try {
+      final query =
+          FirebaseManager.memberList(meetingId).where('uid', isEqualTo: memberUid);
       final snapshot = await query.get();
       final ref = snapshot.docs.first.reference;
-      await Future.wait([
-        ref.delete(),
-        UserMeetingRepository.delete(uid: uid, meetingId: meetingId),
-      ]);
+      await ref.delete();
     } catch (e) {
       debugPrint('deleteMemberData에러: ${e.toString()}');
       rethrow;
@@ -107,19 +103,9 @@ class MemberRepository {
 
   /// Listen Members Data
   static Stream<List<Member>> listenAllDocuments({required String meetingId}) {
-    final ref = FirebaseReference.memberList(meetingId);
+    final ref = FirebaseManager.memberList(meetingId);
     final stream = ref.streamAllDocuments<Member>();
 
     return stream;
   }
-
-  static Future<Member> fetchMemberNameAndImage(Member member) async {
-    final (name, image) = await UserRepository.readOnlyNameAndImage(member.uid);
-    final fetchMember = member;
-    fetchMember.name = name;
-    fetchMember.imageUrl = image;
-    return fetchMember;
-  }
-
 }
-*/

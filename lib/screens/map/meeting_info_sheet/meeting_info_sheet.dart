@@ -115,8 +115,8 @@ class MeetingInfoScreen extends StatelessWidget {
                           height: 100,
                           child: CircleAvatar(
                             radius: 20,
-                            foregroundImage:
-                                Image.network(meeting!.hostImageUrl!).image,
+                            foregroundImage: meeting!.hostImageUrl ==null ? null :
+                                Image.network(meeting.hostImageUrl!).image,
                             backgroundImage: Image.asset(Assets.imageLoading)
                                 .image, // 로딩 중일 때 보여줄 이미지
                           ),
@@ -318,7 +318,7 @@ class MeetingInfoScreen extends StatelessWidget {
                 case MeetingJoinStatus.initial:
                   return joinTextButton(
                     () =>
-                        context.read<MeetingJoinCubit>().joinMeeting(meetingId),
+                        context.read<MeetingJoinCubit>().joinMeeting(meetingId, meeting.hostUid),
                     const Text(
                       '참여하기',
                       style: TextStyle(fontSize: 18),

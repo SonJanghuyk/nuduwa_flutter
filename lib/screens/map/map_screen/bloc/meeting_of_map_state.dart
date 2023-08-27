@@ -19,14 +19,14 @@ final class MeetingOfMapState{ // extends Equatable {
   final String? errorMessage;
 
    /*
-   속성에 null 값도 넣을 수 있게 Funtion()으로 만듬
+   속성에 null 값도 넣을 수 있게 ValueGetter으로 만듬
    ex) state.copyWith(errorMessage: null)이면 state에 있던 errorMessage 그대로 복사하고
        state.copyWith(errorMessage: () => null)이면 errorMessage = null이 됨
   */  
   MeetingOfMapState copyWith({
     MeetingOfMapStatus? status,
     Map<String, Meeting>?  meetings,
-    String Function()? errorMessage,
+    ValueGetter<String?>? errorMessage,
   }) {
     return MeetingOfMapState(
       status: status ?? this.status,

@@ -3,13 +3,14 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/widgets.dart';
 import 'package:nuduwa_flutter/repository/authentication_repository.dart';
 
 part 'authentication_event.dart';
 part 'authentication_state.dart';
 
 class AuthenticationBloc
-    extends Bloc<AuthenticationEvent, AuthenticationState>{
+    extends Bloc<AuthenticationEvent, AuthenticationState> {
   AuthenticationBloc(
       {required AuthenticationRepository authenticationRepository})
       : _authenticationRepository = authenticationRepository,
@@ -24,6 +25,8 @@ class AuthenticationBloc
     _userSubscription = _authenticationRepository.user.listen(
       (user) => add(_AuthenticationChanged(user)),
     );
+
+    debugPrint('AuthenticationBloc시작');
   }
 
   final AuthenticationRepository _authenticationRepository;
@@ -44,6 +47,7 @@ class AuthenticationBloc
 
   @override
   Future<void> close() {
+    debugPrint('AuthenticationBloc끝');
     _userSubscription.cancel();
     return super.close();
   }

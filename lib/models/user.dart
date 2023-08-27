@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/widgets.dart';
+import 'package:nuduwa_flutter/firebase/firebase_manager.dart';
 
 class User extends Equatable {
   final String? id;
@@ -12,10 +14,10 @@ class User extends Equatable {
   final List<String>? interests;
   final DateTime? signUpTime;
 
-  final List<ProviderUserInfo>? providerData;
+  List<ProviderUserInfo>? providerData;
 
-  const User({
-    required this.id,
+  User({
+    this.id,
     this.name,
     this.email,
     this.imageUrl,
@@ -55,9 +57,9 @@ class User extends Equatable {
       if (imageUrl != null) 'image': imageUrl,
       if (introdution != null) 'introdution': introdution,
       if (interests != null) 'interests': interests,
-      "signUpTime": FieldValue.serverTimestamp(),
+      'signUpTime': FieldValue.serverTimestamp(),
       if (providerData != null)
-        "providerData": providerData?.map((info) => info.toFirestore),
+        'providerData': providerData?.map((info) => info.toFirestore),
     };
   }
   
@@ -113,17 +115,16 @@ class ProviderUserInfo {
         'providerId': providerId,
       };
 }
-/*
-class UserRepository {
+class UserDataProvider {
   /// Create User Data
-  static Future<DocumentReference<User>> create({
+  Future<DocumentReference<User>> create({
     required String id,
     required String? name,
     String? email,
     String? imageUrl,
     List<ProviderUserInfo>? providerData,
   }) async {
-    final ref = FirebaseReference.userList.doc(id);
+    final ref = FirebaseManager.userList.doc(id);
     final newUser = User(
       id: id,
       name: name,
@@ -141,8 +142,8 @@ class UserRepository {
   }
 
   /// Read User Basic Data
-  static Future<User?> read(String uid) async {
-    final ref = FirebaseReference.userList.doc(uid);
+  Future<User?> read(String uid) async {
+    final ref = FirebaseManager.userList.doc(uid);
     try {
       final data = await ref.getDocument<User?>();
       data?.providerData = null;
@@ -154,8 +155,8 @@ class UserRepository {
   }
 
   /// Read User All Data
-  static Future<User?> readAll(String uid) async {
-    final ref = FirebaseReference.userList.doc(uid);
+  Future<User?> readAll(String uid) async {
+    final ref = FirebaseManager.userList.doc(uid);
     try {
       final data = await ref.getDocument<User?>();
       return data;
@@ -166,7 +167,7 @@ class UserRepository {
   }
 
   /// Update User Data
-  static Future<void> update({
+  Future<void> update({
     required String uid,
     String? name,
     String? email,
@@ -174,7 +175,7 @@ class UserRepository {
     String? introdution,
     List<String>? interests,
   }) async {
-    final ref = FirebaseReference.userList.doc(uid);
+    final ref = FirebaseManager.userList.doc(uid);
     try {
       await ref.update({
         if (name != null) 'name': name,
@@ -190,8 +191,8 @@ class UserRepository {
   }
 
   /// Listen User Data
-  static Stream<User?> stream(String uid) {
-    final ref = FirebaseReference.userList.doc(uid);
+  Stream<User?> stream(String uid) {
+    final ref = FirebaseManager.userList.doc(uid);
     try {
       final stream = ref.streamDocument<User?>();
       return stream;
@@ -202,14 +203,13 @@ class UserRepository {
   }
 
   /// Fetch User name&image Data
-  static Future<(String?, String?)> readOnlyNameAndImage(String uid) async {
+  Future<({String? name, String? image})> readOnlyNameAndImage(String uid) async {
     try {
-      final user = await UserRepository.read(uid);
-      return (user?.name, user?.imageUrl);
+      final user = await read(uid);
+      return (name: user?.name, image: user?.imageUrl);
     } catch (e) {
       debugPrint('readOnlyNameAndImage에러: ${e.toString()}');
       rethrow;
     }
   }
 }
-*/

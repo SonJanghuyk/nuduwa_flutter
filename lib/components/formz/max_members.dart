@@ -7,7 +7,7 @@ class MaxMembersInput extends FormzInput<int, String> {
   
   @override
   String? validator(int value) {
-    if (value > 1) {
+    if (value <= 1) {
       return '최대 인원수는 1명이상으로 설정해주세요';
     }
 

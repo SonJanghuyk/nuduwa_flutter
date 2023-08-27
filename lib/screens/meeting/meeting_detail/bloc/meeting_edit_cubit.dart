@@ -2,43 +2,35 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:formz/formz.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:nuduwa_flutter/models/meeting.dart';
-import 'package:nuduwa_flutter/repository/meeting_repository.dart';
 import 'package:nuduwa_flutter/components/formz/category.dart';
 import 'package:nuduwa_flutter/components/formz/description.dart';
 import 'package:nuduwa_flutter/components/formz/max_members.dart';
 import 'package:nuduwa_flutter/components/formz/meeting_time.dart';
 import 'package:nuduwa_flutter/components/formz/place.dart';
 import 'package:nuduwa_flutter/components/formz/title.dart';
+import 'package:nuduwa_flutter/models/meeting.dart';
+import 'package:nuduwa_flutter/repository/meeting_repository.dart';
 
-part 'create_meeting_state.dart';
+part 'meeting_edit_state.dart';
 
-class CreateMeetingCubit extends Cubit<CreateMeetingState> {
-  CreateMeetingCubit({
+class MeetingEditCubit extends Cubit<MeetingEditState> {
+  MeetingEditCubit({
     required MeetingRepository meetingRepository,
-    required LatLng location,
   })  : _meetingRepository = meetingRepository,
-        _location = location,
-        super(const CreateMeetingState()) {
-    _setInput();
-    debugPrint('CreateMeetingCubit시작');
-  }
+        super(const MeetingEditState()){
+          debugPrint('MeetingEditCubit시작');
+        }
 
   final MeetingRepository _meetingRepository;
-  final LatLng _location;
+  late Meeting _meeting;
 
-  void _setInput() {
-    final meetingTime = MeetingTimeInput.dirty(DateTime.now());
-    emit(
-      state.copyWith(
-        meetingTime: meetingTime,
-        location: _location,
-      ),
-    );
+  void updateMeeting(Meeting? meeting) {
+    if (meeting==null) return;
+    _meeting = meeting;
   }
 
   void titleChanged(String value) {
+    if(value == _meeting.title) return;
     final title = TitleInput.dirty(value);
     emit(
       state.copyWith(
@@ -56,6 +48,7 @@ class CreateMeetingCubit extends Cubit<CreateMeetingState> {
   }
 
   void descriptionChanged(String value) {
+    if(value == _meeting.description) return;
     final description = DescriptionInput.dirty(value);
     emit(
       state.copyWith(
@@ -73,6 +66,7 @@ class CreateMeetingCubit extends Cubit<CreateMeetingState> {
   }
 
   void placeChanged(String value) {
+    if(value == _meeting.place) return;
     final place = PlaceInput.dirty(value);
     emit(
       state.copyWith(
@@ -96,6 +90,7 @@ class CreateMeetingCubit extends Cubit<CreateMeetingState> {
     final pickTime = DateTime(
         preTime.year, preTime.month, preTime.day, newTime.hour, newTime.minute);
 
+    if(pickTime == _meeting.meetingTime) return;
     final meetingTime = MeetingTimeInput.dirty(pickTime);
     emit(
       state.copyWith(
@@ -122,6 +117,7 @@ class CreateMeetingCubit extends Cubit<CreateMeetingState> {
     );
 
     if (preTime == pickTime) return;
+    if(pickTime == _meeting.meetingTime) return;
 
     final meetingTime = MeetingTimeInput.dirty(pickTime);
     emit(
@@ -149,6 +145,7 @@ class CreateMeetingCubit extends Cubit<CreateMeetingState> {
     );
 
     if (preTime == pickTime) return;
+    if(pickTime == _meeting.meetingTime) return;
 
     final meetingTime = MeetingTimeInput.dirty(pickTime);
     emit(
@@ -167,6 +164,7 @@ class CreateMeetingCubit extends Cubit<CreateMeetingState> {
   }
 
   void maxMembersChanged(int value) {
+    if(value == _meeting.maxMembers) return;
     final maxMembers = MaxMembersInput.dirty(value);
     emit(
       state.copyWith(
@@ -184,6 +182,7 @@ class CreateMeetingCubit extends Cubit<CreateMeetingState> {
   }
 
   void categoryChanged(MeetingCategory value) {
+    if(value == _meeting.category) return;
     final category = CategoryInput.dirty(value);
     emit(
       state.copyWith(
@@ -200,40 +199,9 @@ class CreateMeetingCubit extends Cubit<CreateMeetingState> {
     );
   }
 
-  Future<void> createMeetingFormSubmitted() async {
-    if (!state.isValid) return;
-    emit(state.copyWith(status: FormzSubmissionStatus.inProgress));
-    try {
-      await _meetingRepository.create(
-        title: state.title.value,
-        description: state.description.value,
-        place: state.place.value,
-        maxMembers: state.maxMembers.value,
-        category: state.category.value,
-        location: state.location,
-        meetingTime: state.meetingTime.value!,
-      );
-      emit(state.copyWith(status: FormzSubmissionStatus.success));
-    }
-    // on SignUpWithEmailAndPasswordFailure catch (e) {
-    //   emit(
-    //     state.copyWith(
-    //       errorMessage: e.message,
-    //       status: FormzSubmissionStatus.failure,
-    //     ),
-    //   );
-    // }
-    catch (e) {
-      emit(state.copyWith(
-        status: FormzSubmissionStatus.failure,
-        errorMessage: () => e.toString(),
-      ));
-    }
-  }
-
   @override
   Future<void> close() {
-    debugPrint('CreateMeetingCubit끝');
+    debugPrint('MeetingEditCubit끝');
     return super.close();
   }
 }

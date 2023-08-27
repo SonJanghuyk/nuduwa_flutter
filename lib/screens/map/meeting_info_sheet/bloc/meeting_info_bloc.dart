@@ -24,6 +24,8 @@ class MeetingInfoBloc extends Bloc<MeetingInfoEvent, MeetingInfoState> {
     on<MeetingInfoDoubleTapped>(_onDoubleTapped);
 
     add(_MeetingInfoStarted());
+
+    debugPrint('MeetingInfoBloc시작');
   }
 
   final MeetingRepository _meetingRepository;
@@ -109,5 +111,11 @@ class MeetingInfoBloc extends Bloc<MeetingInfoEvent, MeetingInfoState> {
   void _onDoubleTapped(
       MeetingInfoDoubleTapped event, Emitter<MeetingInfoState> emit) {
     emit(state.copyWith(height: 600, isDraggedEnd: true));
+  }
+
+  @override
+  Future<void> close() {
+    debugPrint('MeetingInfoBloc끝');
+    return super.close();
   }
 }
